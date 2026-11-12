@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.astro/
+.tmp/
+CLAUDE.local.md
+PR_BODY.md
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
