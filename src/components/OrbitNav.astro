@@ -1,0 +1,134 @@
+---
+/**
+ * OrbitNav — fixed vertical rail at the right edge, lg (>= 64em) and up only.
+ * Usage: <OrbitNav slot="rail" /> inside <BaseLayout>. No props.
+ * - One dot (a small planet in the project accent) per project -> `#id`.
+ *   The label (project title) shows on hover and on keyboard focus; it is
+ *   always the accessible name.
+ * - `--progress` (0..1, inline on <nav>) fills the track. `scripts/orbit-nav.ts`
+ *   sets it and sets `aria-current="true"` on the active link.
+ * - Below 64em the rail is not shown; the hero has an in-flow project list.
+ */
+import { getCollection } from 'astro:content';
+
+const projects = (await getCollection('projects')).map((entry) => entry.data).sort((a, b) => a.order - b.order);
+---
+
+<nav class="orbit-nav" aria-label="Projects" style="--progress: 0">
+  <span class="orbit-nav__track" aria-hidden="true"><span class="orbit-nav__fill"></span></span>
+  {
+    projects.map((project) => (
+      <a class="orbit-nav__link stage-scope" href={`#${project.id}`} data-orbit-link style={`--stage-accent: ${project.accent}`}>
+        <span class="orbit-nav__dot" aria-hidden="true" />
+        <span class="orbit-nav__label">{project.title}</span>
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  /* Phones and tablets: no rail. */
+  .orbit-nav {
+    display: none;
+  }
+
+  @media (min-width: 64em) {
+    .orbit-nav {
+      position: fixed;
+      top: 50%;
+      right: var(--space-2);
+      z-index: var(--z-rail);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      transform: translateY(-50%);
+    }
+  }
+
+  /* Thin track behind the dots; the fill grows from the top with --progress. */
+  .orbit-nav__track {
+    position: absolute;
+    top: calc(var(--touch-target) / 2);
+    bottom: calc(var(--touch-target) / 2);
+    left: 50%;
+    width: 2px;
+    margin-inline-start: -1px;
+    border-radius: var(--radius-pill);
+    background-color: var(--color-border);
+  }
+
+  .orbit-nav__fill {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(to bottom, var(--color-accent), var(--color-link));
+    transform: scaleY(var(--progress, 0));
+    transform-origin: top;
+  }
+
+  /* 44px target; the dot is the visible part. */
+  .orbit-nav__link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch-target);
+    height: var(--touch-target);
+    border-radius: 50%;
+    text-decoration: none;
+  }
+
+  /* Small shaded planet. The dark ring separates it from the track. */
+  .orbit-nav__dot {
+    width: var(--space-4);
+    height: var(--space-4);
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 30%, var(--stage-accent-hover), var(--stage-accent) 60%);
+    box-shadow: 0 0 0 var(--space-1) var(--color-space);
+  }
+
+  .orbit-nav__link:hover .orbit-nav__dot,
+  .orbit-nav__link:focus-visible .orbit-nav__dot,
+  .orbit-nav__link[aria-current='true'] .orbit-nav__dot {
+    box-shadow:
+      0 0 0 var(--space-1) var(--color-space),
+      0 0 0 calc(var(--space-1) + 2px) var(--stage-accent),
+      var(--glow-stage);
+  }
+
+  /* Label: left of the dot. Hidden on screen (kept for screen readers) until
+     hover or keyboard focus. */
+  .orbit-nav__label {
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    margin-inline-end: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--stage-accent);
+    border-radius: var(--radius-pill);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--step--1);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+    white-space: nowrap;
+    transform: translateY(-50%);
+    clip-path: inset(50%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .orbit-nav__link:hover .orbit-nav__label,
+  .orbit-nav__link:focus-visible .orbit-nav__label {
+    clip-path: none;
+    opacity: 1;
+  }
+
+  :global(html[data-motion='on']) .orbit-nav__label {
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  :global(html[data-motion='on']) .orbit-nav__dot {
+    transition: box-shadow var(--duration-base) var(--ease-out);
+  }
+</style>

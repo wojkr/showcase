@@ -1,0 +1,210 @@
+---
+/**
+ * Hero — first screen: kicker, giant title, lead, primary button, an in-flow
+ * list of the projects (works without JS, at all widths), a scroll hint, and a
+ * static CSS sun.
+ * Usage: <Hero /> as the first child of <BaseLayout>. No props; text comes
+ * from `site.json`, the list from `projects.json`.
+ * - The sun is decoration for the static state. It hides when the WebGL scene
+ *   paints (`html[data-scene='ready']`). The top padding of the hero equals
+ *   the visible height of the sun, so the sun is never behind text.
+ * - `data-kinetic` (title) and `data-magnetic` (button) are hooks of other scripts.
+ */
+import { getCollection, getEntry } from 'astro:content';
+
+const site = (await getEntry('site', 'site'))!.data;
+const projects = (await getCollection('projects')).map((entry) => entry.data).sort((a, b) => a.order - b.order);
+const first = projects[0];
+---
+
+<section id="top" class="hero" data-section="hero">
+  <span class="hero__sun" aria-hidden="true"></span>
+  <div class="container hero__inner">
+    <p class="eyebrow hero__kicker">{site.heroKicker}</p>
+    <h1 class="hero__title" data-kinetic>{site.heroTitle}</h1>
+    <p class="hero__lead">{site.heroLead}</p>
+    {
+      first && (
+        <a class="btn btn--primary hero__cta" data-magnetic href={`#${first.id}`}>
+          Explore the projects
+        </a>
+      )
+    }
+
+    <nav class="hero__nav" aria-label="Project list">
+      <p class="hero__nav-title">Jump to a project</p>
+      <ul class="hero__list" role="list">
+        {
+          projects.map((project) => (
+            <li>
+              <a class="hero__jump stage-scope" href={`#${project.id}`} style={`--stage-accent: ${project.accent}`}>
+                <span class="hero__jump-dot" aria-hidden="true" />
+                {project.title}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <p class="hero__hint" aria-hidden="true">Scroll</p>
+  </div>
+</section>
+
+<style>
+  .hero {
+    /* Diameter of the sun, and the part of it that is inside the hero. */
+    --sun-size: clamp(16rem, 42vw, 44rem);
+    --sun-visible: calc(var(--sun-size) * 0.45);
+
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: calc(100vh - var(--header-height));
+    min-height: calc(100svh - var(--header-height));
+    padding-block: calc(var(--sun-visible) + var(--space-5)) var(--space-6);
+    overflow-x: clip;
+  }
+
+  /* Static sun: top right, more than half off screen. */
+  .hero__sun {
+    position: absolute;
+    top: calc(var(--sun-size) * -0.55);
+    right: calc(var(--sun-size) * -0.3);
+    width: var(--sun-size);
+    height: var(--sun-size);
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 38% 62%,
+      var(--color-text) 0%,
+      var(--color-accent-hover) 22%,
+      var(--color-accent) 48%,
+      var(--color-mesh-3) 100%
+    );
+    box-shadow:
+      0 0 calc(var(--sun-size) * 0.05) var(--color-accent),
+      0 0 calc(var(--sun-size) * 0.25) var(--color-mesh-1);
+    pointer-events: none;
+  }
+
+  /* Browsers without `overflow: clip` would get a horizontal scroll bar. */
+  @supports not (overflow: clip) {
+    .hero__sun {
+      display: none;
+    }
+  }
+
+  /* The WebGL sun replaces the CSS sun (no layout change). */
+  :global(html[data-scene='ready']) .hero__sun {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .hero__inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .hero__title {
+    font-size: var(--step-7);
+    font-weight: var(--weight-black);
+    line-height: var(--leading-display);
+    text-shadow: var(--glow-text);
+  }
+
+  .hero__lead {
+    color: var(--color-text);
+    font-size: var(--step-2);
+    line-height: var(--leading-snug);
+  }
+
+  .hero__cta {
+    margin-block-start: var(--space-2);
+  }
+
+  /* --- Project list --- */
+  .hero__nav {
+    margin-block-start: var(--space-4);
+  }
+
+  .hero__nav-title {
+    margin-block-end: var(--space-2);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .hero__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* Pill link with an opaque fill: readable above any background. */
+  .hero__jump {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--touch-target);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-pill);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--step--1);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+    text-decoration: none;
+  }
+
+  .hero__jump:hover {
+    border-color: var(--stage-accent);
+    box-shadow: var(--glow-stage);
+  }
+
+  .hero__jump-dot {
+    flex: none;
+    width: var(--space-3);
+    height: var(--space-3);
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 30%, var(--stage-accent-hover), var(--stage-accent) 60%);
+  }
+
+  :global(html[data-motion='on']) .hero__jump {
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out);
+  }
+
+  /* --- Scroll hint: label + short vertical line --- */
+  .hero__hint {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-block-start: var(--space-4);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .hero__hint::after {
+    content: '';
+    width: 1px;
+    height: var(--space-6);
+    background: linear-gradient(to bottom, var(--color-accent), transparent);
+  }
+
+  /* lg and up: keep the text clear of the orbit rail. */
+  @media (min-width: 64em) {
+    .hero__inner {
+      width: min(100% - 2 * var(--space-8), var(--container-max));
+    }
+  }
+</style>

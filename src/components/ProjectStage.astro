@@ -1,0 +1,360 @@
+---
+/**
+ * ProjectStage — one project = one full-height stage (see SHARED.md section 5).
+ * Usage: <ProjectStage project={project} index={0} total={5} />
+ *   project — one entry of `projects.json`; index — 0-based page position;
+ *   total — number of stages (for "01 / 05").
+ * - Layout: phones one column (media above text); lg (>= 64em) two columns.
+ *   `data-side` = side of the media: even index right, odd index left.
+ * - `.stage__body` has the glass surface, so its text never depends on the scene.
+ * - `.stage__planet` is decoration for the static state; it hides when the
+ *   WebGL scene paints (`html[data-scene='ready']`).
+ * - Only static styles here. Scroll, kinetic, tilt, video, and embed logic
+ *   live in `effects.css`, `interactions.css`, and `src/scripts/`.
+ *   Elements that need JS (`video`, video toggle, "Play here", embed) are `hidden`.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { Image, getImage } from 'astro:assets';
+
+interface Props {
+  project: CollectionEntry<'projects'>['data'];
+  index: number;
+  total: number;
+}
+
+const { project, index, total } = Astro.props;
+
+const pad = (n: number): string => String(n).padStart(2, '0');
+const side = index % 2 === 0 ? 'right' : 'left';
+const base = import.meta.env.BASE_URL;
+const videoPoster = project.video ? (await getImage({ src: project.poster, width: 1280, format: 'webp' })).src : undefined;
+---
+
+<section
+  class="stage"
+  id={project.id}
+  data-stage
+  data-index={index}
+  data-side={side}
+  style={`--stage-accent: ${project.accent}`}
+  data-planet={JSON.stringify(project.planet)}
+>
+  <span id={String(project.legacyId)} class="legacy-anchor"></span>
+  <div class="stage__inner">
+    <div class="stage__body">
+      <p class="stage__index">{pad(index + 1)} / {pad(total)}</p>
+      <h2 class="stage__title" data-kinetic>{project.title}</h2>
+      <p class="stage__type">{project.type}</p>
+      <p class="stage__desc">{project.description}</p>
+      <ul class="stage__stack" role="list" aria-label="Technologies">
+        {project.stack.map((item) => <li>{item}</li>)}
+      </ul>
+      <div class="stage__links">
+        <a class="btn btn--primary" data-magnetic href={project.liveUrl} target="_blank" rel="noopener">
+          Live demo<span class="visually-hidden"> of {project.title} (opens in a new tab)</span>
+        </a>
+        {
+          project.sourceUrl && (
+            <a class="btn" data-magnetic href={project.sourceUrl} target="_blank" rel="noopener">
+              Source<span class="visually-hidden"> of {project.title} (opens in a new tab)</span>
+            </a>
+          )
+        }
+        {
+          project.embed && (
+            <button class="btn" type="button" data-embed-open hidden>
+              Play here<span class="visually-hidden">: {project.title}</span>
+            </button>
+          )
+        }
+      </div>
+      {
+        project.wakeUrl && (
+          <p class="stage__note" data-wake-note>
+            The demo server sleeps. The first load can take 30 s.
+          </p>
+        )
+      }
+    </div>
+
+    <div class="stage__media" data-tilt>
+      <span
+        class:list={['stage__planet', { 'stage__planet--rings': project.planet.rings }]}
+        aria-hidden="true"
+        style={`--planet-scale: ${project.planet.radius}`}></span>
+      <div class="stage__bar" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="stage__frame">
+        <Image
+          class="stage__poster"
+          src={project.poster}
+          alt={project.posterAlt}
+          widths={[640, 960, 1280, 1600]}
+          sizes="(min-width: 64em) min(55vw, 44rem), 100vw"
+          width={project.poster.width}
+          height={project.poster.height}
+          format="webp"
+          loading="lazy"
+          decoding="async"
+        />
+        {
+          project.video && (
+            <>
+              <video class="stage__video" data-loop muted loop playsinline preload="none" poster={videoPoster} hidden>
+                <source data-src={`${base}${project.video}.webm`} type="video/webm" />
+                <source data-src={`${base}${project.video}.mp4`} type="video/mp4" />
+              </video>
+              <button class="stage__video-toggle" type="button" data-video-toggle aria-pressed="false" hidden>
+                Pause video<span class="visually-hidden"> of {project.title}</span>
+              </button>
+            </>
+          )
+        }
+        {project.embed && <div class="stage__embed" data-embed data-embed-src={project.liveUrl} data-embed-title={`${project.title} — live demo`} hidden />}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .stage {
+    position: relative;
+    display: grid;
+    align-items: center;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding-block: var(--space-section);
+    overflow-x: clip; /* the planet is partly off screen */
+  }
+
+  /* Old anchors #1 … #5: zero-size target at the top of the stage. */
+  .legacy-anchor {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  /* The element that may be pinned. Phones: one column. */
+  .stage__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    width: min(100% - 2 * var(--gutter), var(--container-max));
+    margin-inline: auto;
+  }
+
+  /* --- Text panel --- */
+  .stage__body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border: 1px solid var(--color-border);
+    border-block-start: 2px solid var(--stage-accent);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-glass);
+    box-shadow: var(--shadow-lg);
+    -webkit-backdrop-filter: blur(var(--space-3));
+    backdrop-filter: blur(var(--space-3));
+  }
+
+  .stage__index {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-wide);
+  }
+
+  /* Large text (>= 34px bold): the accent on glass needs 3:1; it has >= 3.69. */
+  .stage__title {
+    color: var(--stage-accent);
+    text-shadow: 0 0 1.5rem var(--stage-accent-soft);
+  }
+
+  .stage__type {
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .stage__desc {
+    color: var(--color-text);
+  }
+
+  .stage__stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* Pill tag. */
+  .stage__stack > li {
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background-color: var(--color-surface-2);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    line-height: var(--leading-snug);
+  }
+
+  .stage__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-2);
+  }
+
+  .stage__note {
+    color: var(--color-text-muted);
+    font-size: var(--step--1);
+  }
+
+  /* --- Media: browser-window frame with an accent glow --- */
+  .stage__media {
+    position: relative;
+    isolation: isolate; /* keeps the planet (z-index -1) inside this box */
+    order: -1; /* phones: media above the text */
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg), var(--glow-stage);
+  }
+
+  /* Title bar with three dots. */
+  .stage__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: var(--space-6);
+    padding-inline: var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-block-end: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    background-color: var(--color-surface-1);
+  }
+
+  .stage__bar > span {
+    width: var(--space-3);
+    height: var(--space-3);
+    border-radius: 50%;
+    background-color: var(--color-border-strong);
+  }
+
+  .stage__bar > span:first-child {
+    background-color: var(--stage-accent);
+  }
+
+  /* Fixed 16:10 box: nothing shifts when the image, video, or embed loads. */
+  .stage__frame {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border: 1px solid var(--color-border-strong);
+    border-block-start-color: var(--color-border);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    background-color: var(--color-bg);
+  }
+
+  .stage__frame :global(.stage__poster),
+  .stage__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Position only; `interactions.css` owns the look. */
+  .stage__video-toggle {
+    position: absolute;
+    right: var(--space-3);
+    bottom: var(--space-3);
+    min-width: var(--touch-target);
+    min-height: var(--touch-target);
+  }
+
+  .stage__embed {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* --- Static planet: shaded disc behind the upper outer corner of the media --- */
+  .stage__planet {
+    --planet-size: calc(clamp(7rem, 16vw, 15rem) * var(--planet-scale, 1));
+
+    position: absolute;
+    top: calc(var(--planet-size) * -0.42);
+    right: calc(var(--planet-size) * -0.38);
+    z-index: var(--z-behind);
+    width: var(--planet-size);
+    height: var(--planet-size);
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 30% 28%,
+      var(--stage-accent-hover) 0%,
+      var(--stage-accent) 34%,
+      color-mix(in srgb, var(--stage-accent) 30%, var(--color-space)) 72%,
+      var(--color-space) 100%
+    );
+    box-shadow: var(--glow-stage);
+    pointer-events: none;
+  }
+
+  /* Ring: a flat tilted ellipse. */
+  .stage__planet--rings::after {
+    content: '';
+    position: absolute;
+    inset: 36% -38%;
+    border: calc(var(--planet-size) * 0.035) solid color-mix(in srgb, var(--stage-accent) 60%, transparent);
+    border-radius: 50%;
+    transform: rotate(-18deg);
+  }
+
+  /* Browsers without `overflow: clip` would get a horizontal scroll bar. */
+  @supports not (overflow: clip) {
+    .stage__planet {
+      display: none;
+    }
+  }
+
+  /* The WebGL planet replaces the CSS planet (no layout change). */
+  :global(html[data-scene='ready']) .stage__planet {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  /* md and up: more room in the panel. */
+  @media (min-width: 48em) {
+    .stage__body {
+      gap: var(--space-4);
+      padding: var(--space-6);
+    }
+  }
+
+  /* lg and up: two columns; side margins keep the content clear of the rail. */
+  @media (min-width: 64em) {
+    .stage__inner {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      align-items: center;
+      gap: var(--space-8);
+      width: min(100% - 2 * var(--space-8), var(--container-max));
+    }
+
+    /* Media right: the DOM order (body, media). */
+    .stage[data-side='right'] .stage__media {
+      order: 0;
+    }
+
+    /* Media left: media first; the planet moves to the left corner. */
+    .stage[data-side='left'] .stage__inner {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    }
+
+    .stage[data-side='left'] .stage__planet {
+      right: auto;
+      left: calc(var(--planet-size) * -0.38);
+    }
+  }
+</style>

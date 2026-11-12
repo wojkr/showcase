@@ -7,6 +7,8 @@
      `html[data-motion='on']`. Do not add a reduced-motion media query.
    - Classes: .container, .visually-hidden, .skip-link, .eyebrow, .text-muted,
      .btn (secondary, outlined), .btn--primary (filled with --stage-accent).
+   - Anchor targets: `main`, `section[id]`, `.legacy-anchor` get
+     `scroll-margin-top: var(--header-height)`. Give the same to a new target.
    - <html> has no background on purpose: the <body> background then paints
      on the canvas, below the fixed scene layer (z-index: var(--z-scene)).
    ========================================================================== */
@@ -27,11 +29,18 @@
   margin: 0;
 }
 
-/* Root: no text inflation on mobile, room for the sticky header on anchor jumps. */
+/* Root: no text inflation on mobile. */
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  scroll-padding-top: var(--header-height);
+}
+
+/* Anchor targets leave room for the sticky header (DOM contract). There is no
+   `scroll-padding-top` on <html>: the two offsets would add up. */
+main,
+section[id],
+.legacy-anchor {
+  scroll-margin-top: var(--header-height);
 }
 
 /* Smooth anchor scrolling only when motion is on. */
