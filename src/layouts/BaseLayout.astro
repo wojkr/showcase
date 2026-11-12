@@ -1,0 +1,75 @@
+---
+/**
+ * BaseLayout — page shell: <head>, skip link, scene slot, header, rail slot,
+ * <main id="main">, footer, boot script.
+ * Usage:
+ *   <BaseLayout wakeUrls={urls}>
+ *     <SceneLayer slot="scene" />   (fixed layer behind the page)
+ *     <OrbitNav slot="rail" />      (fixed navigation rail)
+ *     page content                  (goes into <main>)
+ *   </BaseLayout>
+ * Defaults of `title` and `description` come from the `site` content entry.
+ */
+import { getEntry } from 'astro:content';
+import '@fontsource-variable/unbounded/wght.css';
+import '@fontsource-variable/manrope/wght.css';
+import '../styles/global.css';
+import headingFontUrl from '@fontsource-variable/unbounded/files/unbounded-latin-wght-normal.woff2?url';
+import Seo from '../components/Seo.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  /** Default: `site.title`. */
+  title?: string;
+  /** Default: `site.description`. */
+  description?: string;
+  /** true = tell search engines not to index the page. */
+  noindex?: boolean;
+  /** Demo servers to wake at load; rendered as JSON in `data-wake-urls` on <main>. */
+  wakeUrls?: string[];
+}
+
+const site = (await getEntry('site', 'site'))!.data;
+const { title = site.title, description = site.description, noindex = false, wakeUrls } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Runs before the first paint. Marks that JS runs (class "js") and sets the
+         motion state (see scripts/motion.ts): the stored choice wins; if there is
+         none, the system setting decides. -->
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        var motion = null;
+        root.classList.add('js');
+        try {
+          motion = localStorage.getItem('motion');
+        } catch (e) {}
+        if (motion !== 'on' && motion !== 'off') {
+          motion = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'off' : 'on';
+        }
+        root.setAttribute('data-motion', motion);
+      })();
+    </script>
+    <link rel="preload" href={headingFontUrl} as="font" type="font/woff2" crossorigin />
+    <Seo title={title} description={description} noindex={noindex} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <slot name="scene" />
+    <Header />
+    <slot name="rail" />
+    <main id="main" data-wake-urls={wakeUrls ? JSON.stringify(wakeUrls) : undefined}>
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      import '../scripts/boot.ts';
+    </script>
+  </body>
+</html>

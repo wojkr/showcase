@@ -1,0 +1,125 @@
+---
+/**
+ * Header — sticky translucent site header.
+ * Usage: <Header /> (BaseLayout renders it). No props; data from `site`.
+ * Left: wordmark (initials of `site.name`; the full name from md) -> #top.
+ * Right: link to the portfolio, then the motion toggle.
+ * Fits at 360px: initials + "Portfolio" + toggle, one row, no wrap.
+ */
+import { getEntry } from 'astro:content';
+import MotionToggle from './MotionToggle.astro';
+
+const site = (await getEntry('site', 'site'))!.data;
+
+const initials = site.name
+  .split(/\s+/)
+  .filter(Boolean)
+  .map((word) => word.charAt(0).toUpperCase())
+  .join('');
+---
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <!-- Accessible name at all widths: "<name> — back to top". -->
+    <a class="site-header__logo" href="#top">
+      <span class="site-header__initials" aria-hidden="true">{initials}</span>
+      <span class="site-header__name">{site.name}</span>
+      <span class="visually-hidden"> — back to top</span>
+    </a>
+
+    <div class="site-header__actions">
+      <a class="site-header__link" href={site.links.portfolio}>Portfolio</a>
+      <MotionToggle />
+    </div>
+  </div>
+</header>
+
+<style>
+  /* Sticky bar. The height equals --header-height. 85 % opaque: text contrast
+     stays >= 6.6:1 over any scene color (see tokens.css). */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    height: var(--header-height);
+    background-color: var(--color-space); /* fallback: no color-mix support */
+    background-color: color-mix(in srgb, var(--color-space) 85%, transparent);
+    border-block-end: 1px solid var(--color-border);
+    -webkit-backdrop-filter: blur(var(--space-3));
+    backdrop-filter: blur(var(--space-3));
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    height: 100%;
+  }
+
+  /* Wordmark. */
+  .site-header__logo {
+    display: inline-flex;
+    align-items: center;
+    min-width: var(--touch-target);
+    min-height: var(--touch-target);
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    font-size: var(--step-1);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .site-header__logo:hover {
+    color: var(--color-accent);
+    text-shadow: var(--glow-text);
+  }
+
+  /* Phones: initials on screen; the full name stays for screen readers
+     (same technique as .visually-hidden). md and up: the full name. */
+  @media (max-width: 47.99em) {
+    .site-header__name {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  .site-header__actions {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .site-header__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    padding-inline: var(--space-2);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-size: var(--step--1);
+    font-weight: var(--weight-semibold);
+    text-underline-offset: 0.3em;
+  }
+
+  .site-header__link:hover {
+    color: var(--color-accent);
+  }
+
+  @media (min-width: 48em) {
+    .site-header__initials {
+      display: none;
+    }
+
+    .site-header__actions {
+      gap: var(--space-4);
+    }
+  }
+</style>

@@ -1,0 +1,50 @@
+---
+/**
+ * Seo — all <head> metadata: title, description, canonical, robots, Open Graph,
+ * Twitter card, theme color, favicon, sitemap.
+ * Usage (BaseLayout only): <Seo title="…" description="…" noindex={false} />
+ * URLs: absolute, built from `Astro.site` + `import.meta.env.BASE_URL`.
+ */
+import { getEntry } from 'astro:content';
+
+interface Props {
+  title: string;
+  description: string;
+  /** true = `noindex` and no canonical link (404 page). */
+  noindex?: boolean;
+}
+
+const { title, description, noindex = false } = Astro.props;
+const site = (await getEntry('site', 'site'))!.data;
+
+/* The base path with exactly one trailing slash (the config may omit it). */
+const base = import.meta.env.BASE_URL.replace(/\/*$/, '/');
+const siteUrl = Astro.site ?? new URL(Astro.url.origin);
+const canonical = new URL(Astro.url.pathname, siteUrl).href;
+const ogImage = new URL(`${base}og.png`, siteUrl).href;
+
+/* Must equal --color-space in tokens.css (meta tags cannot read CSS variables). */
+const themeColor = '#0d0916';
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+{noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+<meta name="theme-color" content={themeColor} />
+
+<link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+<link rel="sitemap" href={`${base}sitemap-index.xml`} />
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content={site.name} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={title} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />

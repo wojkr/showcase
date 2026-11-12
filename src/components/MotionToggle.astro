@@ -1,0 +1,98 @@
+---
+/**
+ * MotionToggle — the button that turns all animations on or off.
+ * Usage: <MotionToggle /> (the Header renders it). No props.
+ * - Pressed = animations on. The accessible name is constant ("Animations");
+ *   the state is `aria-pressed`. The visible text is "Animations: on / off".
+ * - No JS: the button stays `hidden` (it cannot work).
+ * - The inline script after the button runs before the first paint: it shows
+ *   the button and sets `aria-pressed`. CSS selects the visible text from
+ *   `html[data-motion]`, so there is no flicker. `scripts/boot.ts` handles the
+ *   click and keeps `aria-pressed` in sync.
+ */
+---
+
+<button type="button" class="motion-toggle" data-motion-toggle aria-pressed="false" aria-label="Animations" hidden>
+  <span class="motion-toggle__dot" aria-hidden="true"></span>
+  <span class="motion-toggle__label">
+    <span class="motion-toggle__text motion-toggle__text--on">Animations: on</span>
+    <span class="motion-toggle__text motion-toggle__text--off">Animations: off</span>
+  </span>
+</button>
+<script is:inline>
+  (function () {
+    var script = document.currentScript;
+    var button = script && script.previousElementSibling;
+    if (!button || !button.hasAttribute('data-motion-toggle')) return;
+    button.setAttribute('aria-pressed', String(document.documentElement.getAttribute('data-motion') === 'on'));
+    button.hidden = false;
+  })();
+</script>
+
+<style>
+  .motion-toggle {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-width: var(--touch-target);
+    min-height: var(--touch-target);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-pill);
+    background-color: var(--color-surface-1);
+    color: var(--color-text);
+    font-size: var(--step--1);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+    white-space: nowrap;
+  }
+
+  .motion-toggle:hover {
+    border-color: var(--color-accent);
+    background-color: var(--color-surface-2);
+  }
+
+  /* State light: hollow = off, filled and glowing = on. */
+  .motion-toggle__dot {
+    flex: none;
+    width: var(--space-2);
+    height: var(--space-2);
+    border: 1px solid var(--color-text-muted);
+    border-radius: 50%;
+  }
+
+  :global(html[data-motion='on']) .motion-toggle__dot {
+    border-color: var(--color-accent);
+    background-color: var(--color-accent);
+    box-shadow: var(--glow-accent);
+  }
+
+  /* The two texts share one grid cell: the button keeps one width in the two
+     states (no layout shift). `visibility: hidden` also hides the inactive
+     text from assistive technology. */
+  .motion-toggle__label {
+    display: grid;
+  }
+
+  .motion-toggle__text {
+    grid-area: 1 / 1;
+  }
+
+  /* Default (motion off): show "off". Motion on: show "on". */
+  .motion-toggle__text--on,
+  :global(html[data-motion='on']) .motion-toggle__text--off {
+    visibility: hidden;
+  }
+
+  :global(html[data-motion='on']) .motion-toggle__text--on {
+    visibility: visible;
+  }
+
+  :global(html[data-motion='on']) .motion-toggle {
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+  }
+</style>

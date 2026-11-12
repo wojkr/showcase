@@ -7,7 +7,7 @@ import sitemap from '@astrojs/sitemap';
  * To move the site to another repo, change BASE only.
  * In code, build URLs with `import.meta.env.BASE_URL` (it ends with "/").
  */
-const BASE = '/showcase';
+const BASE = '/showcase/';
 
 export default defineConfig({
   site: 'https://wojkr.github.io',

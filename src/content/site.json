@@ -1,0 +1,19 @@
+{
+  "name": "Wojciech Krupa",
+  "title": "Wojciech Krupa — Projects Showcase",
+  "description": "Five web projects by software engineer Wojciech Krupa: an online shop, a marketplace, a rating site, a game, and a CSS animation. Live demos and source.",
+  "heroKicker": "Projects showcase",
+  "heroTitle": "Projects in orbit",
+  "heroLead": "Five projects, five planets. Scroll to fly from one to the next.",
+  "pilot": {
+    "heading": "The pilot",
+    "text": "I am Wojciech Krupa, a software engineer at Bee Robotics. I build .NET and WPF interfaces and control routines for robotic systems, and I hold a B.Eng. in Aeronautics and Space Technology.",
+    "image": "../assets/media/pilot.webp",
+    "imageAlt": "Portrait of Wojciech Krupa, smiling, in a dark blazer and a light blue shirt."
+  },
+  "links": {
+    "portfolio": "https://wojkr.github.io/",
+    "github": "https://github.com/wojkr",
+    "linkedin": "https://www.linkedin.com/in/wojciech-w-krupa/"
+  }
+}

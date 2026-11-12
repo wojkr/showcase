@@ -1,0 +1,195 @@
+/* ==========================================================================
+   tokens.css — design tokens (single source of truth). Theme: dark space.
+
+   HOW TO USE
+   - Use tokens only through var(): `color: var(--color-text)`.
+   - Do not write raw colors, durations, or z-index numbers in components.
+   - Names and values equal the portfolio tokens. ORBIT adds: --color-space,
+     --color-glass, --stage-accent (+ -hover, -soft), --step-7, --glow-*,
+     --duration-xslow, --ease-expo, --z-scene, --z-rail, --z-cursor.
+   - Stage accent: set `--stage-accent` inline on an element that has
+     `data-stage` (or class `stage-scope`). Only there the derived tokens
+     (--stage-accent-hover, --stage-accent-soft, --glow-stage) are computed again.
+   - Contrast (WCAG 2.1, computed). Columns = background:
+       text on            space    bg   surf-1  surf-2  glass*  header*
+       --color-text       17.39  15.85  13.13   10.91   13.00   11.75
+       --color-text-muted  9.85   8.97   7.43    6.18    7.36    6.65
+       --color-accent      9.59   8.74   7.24    6.02    7.17    6.48
+       --color-accent-hover 12.03 10.96  9.08    7.54    8.99    8.13
+       --color-link        10.43   9.50   7.87    6.54    7.80    7.05
+       --color-error        9.69   8.83   7.31    6.08    7.24    6.55
+       --color-success     12.30  11.20   9.28    7.71    9.19    8.31
+       --color-border-strong 5.57  5.08   4.20    3.49    4.16    3.76  (need 3:1)
+     * glass = --color-glass (88 %) and header = 85 % of --color-space, each over
+       a pure white scene (the worst case).
+     --color-accent-contrast on --color-accent: 8.74; on --color-accent-hover: 10.96.
+     --color-focus = --color-link: >= 6.54 on all backgrounds (need 3:1).
+     --color-text on the selection tint over --color-space: 8.29.
+     A stage accent must be >= 4.5:1 on --color-bg (content rule). Then it is
+     >= 4.94 on --color-space, >= 3.73 on surface-1, >= 3.10 on surface-2:
+     use it as text only on --color-space / --color-bg; as a border anywhere.
+   - --color-border is decorative (below 3:1). Use --color-border-strong for
+     borders that identify a control.
+   - Type: --step--1 (small) to --step-7 (hero display). Body text is --step-0.
+   - Space: --space-1 (4px) to --space-11 (160px). --space-section is fluid.
+   - Breakpoints (media queries cannot read variables, so copy the values):
+       md = 48em (768px), lg = 64em (1024px).
+   ========================================================================== */
+
+:root {
+  /* Tells the browser to render native UI (scrollbars, inputs) dark. */
+  color-scheme: dark;
+
+  /* --- Colors: backgrounds and surfaces (darkest to lightest) --- */
+  --color-space: #0d0916; /* deepest background: the page */
+  --color-bg: #1a1426; /* panels on space */
+  --color-surface-1: #2c233d; /* cards, buttons */
+  --color-surface-2: #3a2f50; /* raised or hovered surfaces, tags */
+  --color-glass: rgb(13 9 22 / 0.88); /* text panel above the scene */
+
+  /* --- Colors: borders --- */
+  --color-border: #4b3f64; /* decorative hairline */
+  --color-border-strong: #8f82ab; /* control boundary, >= 3:1 on all surfaces */
+
+  /* --- Colors: text --- */
+  --color-text: #f4effa; /* body and headings */
+  --color-text-muted: #bdb3cf; /* secondary text */
+
+  /* --- Colors: brand --- */
+  --color-accent: #e79ce1; /* the brand accent (pink) */
+  --color-accent-hover: #f2b8ec; /* accent, hover state */
+  --color-accent-contrast: #1a1426; /* text on accent and on a stage accent */
+  --color-link: #77c5f9; /* support color (blue): links */
+  --color-focus: #77c5f9; /* focus ring */
+
+  /* --- Colors: status --- */
+  --color-error: #ff9a9b;
+  --color-success: #7fe0a8;
+
+  /* --- Colors: translucent effects (glows, nebula blobs, overlays) --- */
+  --color-accent-glow: rgb(231 156 225 / 0.16); /* spotlight glow */
+  --color-accent-soft: rgb(231 156 225 / 0.12); /* tinted fills */
+  --color-selection: rgb(231 156 225 / 0.35); /* ::selection background */
+  --color-mesh-1: rgb(231 156 225 / 0.28); /* nebula blob: pink */
+  --color-mesh-2: rgb(119 197 249 / 0.2); /* nebula blob: blue */
+  --color-mesh-3: rgb(124 92 196 / 0.35); /* nebula base: purple */
+  --color-mask: #000; /* opaque stop for mask gradients (not painted) */
+
+  /* --- Font families --- */
+  --font-heading: 'Unbounded Variable', 'Unbounded', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Manrope Variable', 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  /* --- Fluid type scale --- */
+  --step--1: clamp(0.8125rem, 0.79rem + 0.11vw, 0.875rem); /* 13 -> 14px: labels, tags */
+  --step-0: clamp(1rem, 0.955rem + 0.23vw, 1.125rem); /* 16 -> 18px: body */
+  --step-1: clamp(1.125rem, 1.057rem + 0.34vw, 1.3125rem); /* 18 -> 21px: lead, h4 */
+  --step-2: clamp(1.3125rem, 1.199rem + 0.57vw, 1.625rem); /* 21 -> 26px: h3 */
+  --step-3: clamp(1.5rem, 1.295rem + 1.02vw, 2.0625rem); /* 24 -> 33px */
+  --step-4: clamp(1.75rem, 1.386rem + 1.82vw, 2.75rem); /* 28 -> 44px */
+  --step-5: clamp(2.125rem, 1.534rem + 2.95vw, 3.75rem); /* 34 -> 60px: h2 (stage title) */
+  --step-6: clamp(2.5rem, 1.5rem + 5vw, 5.25rem); /* 40 -> 84px: h1 */
+  --step-7: clamp(2.5rem, 1.2rem + 6.5vw, 9rem); /* 40 -> 144px at 1920: hero display */
+
+  /* --- Line heights --- */
+  --leading-display: 0.95; /* --step-7 only */
+  --leading-tight: 1.1; /* display headings */
+  --leading-snug: 1.3; /* small headings, buttons */
+  --leading-normal: 1.65; /* body text */
+
+  /* --- Letter spacing --- */
+  --tracking-tight: -0.02em; /* large headings */
+  --tracking-wide: 0.12em; /* uppercase mono labels */
+
+  /* --- Font weights (both fonts are variable) --- */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-black: 800; /* hero display */
+
+  /* --- Spacing scale (4px base) --- */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.5rem; /* 24px */
+  --space-6: 2rem; /* 32px */
+  --space-7: 3rem; /* 48px */
+  --space-8: 4rem; /* 64px */
+  --space-9: 6rem; /* 96px */
+  --space-10: 8rem; /* 128px */
+  --space-11: 10rem; /* 160px */
+  --space-section: clamp(4rem, 2.5rem + 7.5vw, 9rem); /* vertical padding of a section */
+
+  /* --- Radius --- */
+  --radius-sm: 0.375rem; /* tags */
+  --radius-md: 0.75rem; /* small controls */
+  --radius-lg: 1.25rem; /* panels, frames */
+  --radius-pill: 999px;
+
+  /* --- Shadows (deep and soft) --- */
+  --shadow-sm: 0 1px 2px rgb(4 2 8 / 0.5);
+  --shadow-md: 0 8px 24px -8px rgb(4 2 8 / 0.7);
+  --shadow-lg: 0 24px 56px -16px rgb(4 2 8 / 0.8);
+  --shadow-glow: 0 0 40px -8px rgb(231 156 225 / 0.35); /* portfolio name; soft accent glow */
+
+  /* --- Glow (box-shadow / filter: drop-shadow values) --- */
+  --glow-accent: 0 0 2.5rem -0.25rem rgb(231 156 225 / 0.6); /* brand glow */
+  --glow-text: 0 0 1.5rem rgb(231 156 225 / 0.45); /* text-shadow of display type */
+
+  /* --- Layout --- */
+  --container-max: 80rem; /* 1280px max content width */
+  --gutter: clamp(1rem, 4vw, 2.5rem); /* page side padding, 16px on phones */
+  --grid-gap: clamp(1rem, 2.5vw, 2rem);
+  --header-height: 4rem; /* sticky header height, used by scroll-padding-top */
+  --measure: 60ch; /* max line length of running text */
+  --touch-target: 2.75rem; /* 44px minimum interactive size */
+
+  /* --- Focus ring --- */
+  --focus-width: 3px;
+  --focus-offset: 3px;
+
+  /* --- Z-index layers --- */
+  --z-scene: -1; /* the fixed WebGL scene layer */
+  --z-behind: -1; /* decorative backgrounds */
+  --z-base: 0;
+  --z-raised: 1; /* content above decoration */
+  --z-rail: 90; /* fixed orbit navigation rail */
+  --z-header: 100; /* sticky header */
+  --z-overlay: 200; /* dialogs, the game, embeds */
+  --z-skip-link: 300; /* above all page UI */
+  --z-cursor: 400; /* custom cursor: above everything, no pointer events */
+
+  /* --- Motion: durations --- */
+  --duration-fast: 150ms; /* hover color changes */
+  --duration-base: 300ms; /* lifts, fades */
+  --duration-slow: 700ms; /* reveals */
+  --duration-xslow: 1200ms; /* hero entrances, camera-linked moves */
+  --reveal-stagger: 80ms; /* delay step between staggered reveals */
+
+  /* --- Motion: easings --- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* default: fast start, soft stop */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* loops, back-and-forth */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* small overshoot */
+  --ease-expo: cubic-bezier(0.19, 1, 0.22, 1); /* long, dramatic stop */
+
+  /* --- Motion: distances --- */
+  --reveal-distance: 1.5rem; /* travel of a reveal */
+  --lift-distance: -0.25rem; /* travel of a hover lift */
+}
+
+/* Stage accent and its derived tokens. A custom property that uses var() is
+   computed where it is declared, so this block repeats on each element that
+   sets its own `--stage-accent` (inline). The fallback keeps the inline value. */
+:root {
+  --stage-accent: var(--color-accent);
+}
+
+:root,
+[data-stage],
+.stage-scope {
+  --stage-accent-hover: color-mix(in srgb, var(--stage-accent) 75%, #fff); /* lighter: more contrast with dark text */
+  --stage-accent-soft: color-mix(in srgb, var(--stage-accent) 14%, transparent); /* tinted fill */
+  --glow-stage: 0 0 2.5rem -0.25rem color-mix(in srgb, var(--stage-accent) 65%, transparent);
+}
