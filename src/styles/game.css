@@ -11,6 +11,7 @@
 /* The dialog panel. `display` is set only when open, so a closed dialog stays hidden. */
 .game {
   z-index: var(--z-overlay);
+  margin: auto; /* the reset sets margin 0; a modal dialog needs auto to stay centered */
   width: min(100% - 2 * var(--space-4), 34rem);
   max-height: calc(100dvh - 2 * var(--space-4));
   padding: var(--space-5);
