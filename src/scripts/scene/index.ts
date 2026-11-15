@@ -129,7 +129,8 @@ function start(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext, tier: 'hig
   const renderer = new WebGLRenderer({ canvas, context: gl, antialias: tier === 'high', alpha: true });
   let world: World;
   try {
-    renderer.setClearColor(new Color(C.CLEAR_COLOR), 1);
+    // Alpha 0: until the sky sphere exists, the CSS fallback shows through. The sky then covers all pixels.
+    renderer.setClearColor(new Color(C.CLEAR_COLOR), 0);
     world = createWorld(renderer, tier, specs);
   } catch (error) {
     renderer.dispose();
@@ -248,6 +249,10 @@ function start(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext, tier: 'hig
     narrowLayout || st.kind === Kind.Pilot ? 0 : st.kind === Kind.Hero ? -1 : -st.side;
   let running = false;
   let disposed = false;
+  let canPlay = false; // true after the first build step
+  let built = false; // true after the last build step
+  let ready = false; // true after the first complete frame
+  let buildTimer = 0;
   let raf = 0;
   let resizeTimer = 0;
   let last = 0;
@@ -417,8 +422,10 @@ function start(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext, tier: 'hig
     world.update(dt, camera);
     renderer.render(world.scene, camera);
 
-    if (firstFrame) {
-      firstFrame = false;
+    firstFrame = false;
+    if (!built) return; // start-up frames: no "ready" state, no FPS judgement
+    if (!ready) {
+      ready = true;
       root.dataset.scene = 'ready';
     }
 
@@ -450,7 +457,7 @@ function start(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext, tier: 'hig
   };
 
   const play = (): void => {
-    if (running || disposed || document.hidden) return;
+    if (running || disposed || !canPlay || document.hidden) return;
     running = true;
     last = performance.now();
     statFrames = 0;
@@ -490,6 +497,7 @@ function start(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext, tier: 'hig
     if (disposed) return;
     disposed = true;
     pause();
+    window.clearTimeout(buildTimer);
     window.clearTimeout(resizeTimer);
     document.removeEventListener('visibilitychange', onVisibility);
     window.removeEventListener('resize', onResize);
@@ -523,7 +531,56 @@ function start(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext, tier: 'hig
   }
   layoutObserver?.observe(document.body);
 
+  /* ---- Incremental start-up: one object group per task ---- */
+  const parallel = gl.getExtension('KHR_parallel_shader_compile');
+  /** True when no shader program is still in compilation (always true without the extension). */
+  const programsReady = (): boolean => {
+    const programs = renderer.info.programs;
+    if (parallel === null || programs === null) return true;
+    for (const item of programs) {
+      if (gl.getProgramParameter(item.program, parallel.COMPLETION_STATUS_KHR) === false) return false;
+    }
+    return true;
+  };
+  /** Ends the current task. With `poll`: resolves when the compiler is done (or on dispose). */
+  const wait = (poll: boolean): Promise<void> =>
+    new Promise((resolve) => {
+      const tick = (): void => {
+        if (disposed || !poll || programsReady()) resolve();
+        else buildTimer = window.setTimeout(tick, C.COMPILE_POLL_MS);
+      };
+      buildTimer = window.setTimeout(tick, 0);
+    });
+
+  const build = async (): Promise<void> => {
+    for (const step of world.steps) {
+      await wait(false);
+      if (disposed) return;
+      const part = step();
+      // Starts compile + link. With KHR_parallel_shader_compile this does not block.
+      // The current render target must be the one of the later draw, else the cache key
+      // differs and three compiles a second program, synchronously, at the first draw.
+      if (part.target) renderer.setRenderTarget(part.target);
+      renderer.compile(part.object, camera, world.scene);
+      if (part.target) renderer.setRenderTarget(null);
+      await wait(true);
+      if (disposed) return;
+      part.commit();
+      if (!canPlay) {
+        canPlay = true;
+        play(); // the loop runs during the build: each frame meets at most one new group
+      }
+    }
+    statFrames = 0;
+    statTime = 0;
+    windows = 0;
+    built = true;
+  };
+
   resize();
-  play();
+  build().catch(() => {
+    dispose();
+    setTier('none');
+  });
   return dispose;
 }

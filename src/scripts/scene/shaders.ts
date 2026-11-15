@@ -4,7 +4,7 @@
  * Rules: float literals always have a decimal point (GLSL ES has no int -> float
  * conversion). smoothstep always gets edge0 < edge1. Colors are display-space
  * sRGB; no shader includes the three color-space chunk.
- * `OCT` (fbm octaves) and `PLANET_TYPE` come from material defines.
+ * `OCT` (fbm octaves) comes from material defines. The planet type is a uniform.
  */
 
 /** Value noise + fbm. Needs `#define OCT n`. */
@@ -337,7 +337,7 @@ void main() {
 }
 `;
 
-/* ---------- Planet surface. PLANET_TYPE: 0 gas bands, 1 rocky, 2 swirl, 3 moon ---------- */
+/* ---------- Planet surface. uType: 0 gas bands, 1 rocky, 2 swirl, 3 moon (one program) ---------- */
 export const PLANET_FRAG = /* glsl */ `
 ${NOISE}
 uniform vec3 uColA;
@@ -347,6 +347,7 @@ uniform vec3 uColHi;
 uniform vec3 uAccent;
 uniform vec3 uSunDir;
 uniform float uSeed;
+uniform float uType; // 0 gas bands, 1 rocky, 2 swirl, 3 moon
 uniform float uTime;
 uniform float uDim;
 uniform float uAmbient;
@@ -359,7 +360,7 @@ void main() {
   vec3 sp = p + vec3(uSeed * 1.7, uSeed * 0.3, -uSeed);
   vec3 col;
   float gloss = 0.0;
-#if PLANET_TYPE == 0
+  if (uType < 0.5) {
   float warp = fbm(sp * vec3(2.0, 6.0, 2.0));
   float lat = p.y * 6.5 + (warp - 0.5) * 2.4;
   float band = sin(lat * K_PI) * 0.5 + 0.5;
@@ -368,7 +369,7 @@ void main() {
   col = mix(col, uColB, grain * 0.65);
   float storm = smoothstep(0.62, 0.72, fbm(sp * 4.5 + vec3(warp)));
   col = mix(col, uColHi, storm * 0.45);
-#elif PLANET_TYPE == 1
+  } else if (uType < 1.5) {
   float h = fbm(sp * 2.4);
   float h2 = fbm(sp * 7.0 + vec3(h * 2.0));
   float land = smoothstep(0.44, 0.52, h + (h2 - 0.5) * 0.25);
@@ -378,18 +379,18 @@ void main() {
   gloss = 1.0 - land;
   float cloud = smoothstep(0.52, 0.7, fbm(sp * 3.5 + vec3(uTime * 0.012, 0.0, h)));
   col = mix(col, vec3(0.95), cloud * 0.5);
-#elif PLANET_TYPE == 2
+  } else if (uType < 2.5) {
   vec3 q = sp * 1.8;
   vec3 w = vec3(fbm(q), fbm(q + vec3(3.1)), fbm(q + vec3(7.7)));
   float n = fbm(q * 1.5 + w * 2.5 + vec3(0.0, p.y * 2.0, 0.0));
   col = mix(uColC, uColA, smoothstep(0.25, 0.65, n));
   col = mix(col, uColB, smoothstep(0.45, 0.8, w.x));
   col = mix(col, uColHi, pow(n, 4.0) * 1.6);
-#else
+  } else {
   float h = fbm(sp * 4.0);
   float crater = smoothstep(0.55, 0.6, fbm(sp * 9.0));
   col = mix(uColC, uColA, h) * (1.0 - crater * 0.35);
-#endif
+  }
   vec3 nrm = normalize(vN);
   vec3 viewDir = normalize(cameraPosition - vW);
   float ndl = dot(nrm, uSunDir);

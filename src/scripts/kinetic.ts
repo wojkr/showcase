@@ -17,7 +17,10 @@
  *   - Ghost index: a decorative outlined "01"…"05" per stage (`span.fx-ghost`,
  *     `aria-hidden`) that drifts at a different scroll speed.
  *
- * `dispose()` puts back the original child nodes and `aria-label` of each
+ * Start-up is phased: task 1 = hero title; then one stage per task. With a
+ * hash or scrollY > 0 all is built in one task.
+ *
+ * `dispose()` cancels the steps that are left, puts back the original child nodes and `aria-label` of each
  * heading, removes the ghosts, the listeners, the tweens, and the ScrollTriggers.
  *
  * `refreshPriority` numbers equal the ones in scroll.ts (see the header there).
@@ -139,8 +142,10 @@ export function init(): Dispose {
   const skipIntro = introDone || window.location.hash.length > 1 || window.scrollY > 0 || performance.now() > HERO.maxStartMs;
   introDone = true;
 
-  // Read the layout first (one pass), then write.
-  const stageTops = stages.map((stage) => stage.getBoundingClientRect().top);
+  // Hash load or restored scroll: build all in one task (equal to scroll.ts).
+  const eagerStart = window.location.hash.length > 1 || window.scrollY > 0;
+  let alive = true;
+  let stepTimer: number | undefined;
 
   const splits: Split[] = [];
   const ghosts: HTMLElement[] = [];
@@ -178,16 +183,13 @@ export function init(): Dispose {
       let ready = skipIntro; // true when the intro is over: pointer effects may run
 
       if (!skipIntro) {
-        // Lock each letter width, so a scramble glyph cannot move the line.
-        const widths = chars.map((char) => char.getBoundingClientRect().width);
-        chars.forEach((char, i) => {
-          char.style.width = `${widths[i] ?? 0}px`;
-        });
-
+        // Scramble: the random glyph is painted by `::after` from `data-glyph`
+        // (effects.css). The real letter keeps its box, so there is no layout
+        // read, no layout write, and no line move.
         const tl = gsap.timeline({
           delay: HERO.delay,
           onComplete: () => {
-            chars.forEach((char) => char.style.removeProperty('width'));
+            chars.forEach((char) => char.removeAttribute('data-glyph'));
             gsap.set(chars, { clearProps: 'transform,opacity' });
             ready = true;
           },
@@ -206,7 +208,6 @@ export function init(): Dispose {
           0,
         );
         chars.forEach((char, i) => {
-          const original = char.textContent ?? '';
           const state = { step: 0 };
           let shown = -1;
           tl.to(
@@ -219,10 +220,11 @@ export function init(): Dispose {
                 const step = Math.floor(state.step);
                 if (step === shown) return;
                 shown = step;
-                char.textContent = step >= HERO.scrambleSteps ? original : randomGlyph();
+                if (step >= HERO.scrambleSteps) char.removeAttribute('data-glyph');
+                else char.setAttribute('data-glyph', randomGlyph());
               },
               onComplete: () => {
-                char.textContent = original;
+                char.removeAttribute('data-glyph');
               },
             },
             i * HERO.stagger,
@@ -256,9 +258,13 @@ export function init(): Dispose {
       }
     }
 
-    /* --- Stages: title letters + ghost index --- */
-    stages.forEach((stage, index) => {
+  });
+
+  /* --- One stage (title letters + ghost index) = one start-up step --- */
+  const buildStage = (stage: HTMLElement, index: number): void => {
+    {
       const priority = -(index * 10) - 5;
+      const stageTop = stage.getBoundingClientRect().top; // the one layout read of this step
 
       const title = stage.querySelector<HTMLElement>('[data-kinetic]');
       const item = title ? split(title) : null;
@@ -285,7 +291,7 @@ export function init(): Dispose {
         );
 
         // Already at or above the line (hash load, restored scroll): end state now.
-        if ((stageTops[index] ?? Number.POSITIVE_INFINITY) < viewport * TITLE.line) tl.progress(1, true);
+        if (stageTop < viewport * TITLE.line) tl.progress(1, true);
 
         ScrollTrigger.create({
           trigger: stage,
@@ -323,13 +329,30 @@ export function init(): Dispose {
           },
         );
       }
-    });
-  });
+    }
+  };
 
-  let alive = true;
+  if (eagerStart) {
+    ctx.add(() => stages.forEach(buildStage));
+  } else {
+    // Phased start-up: one stage per task. scroll.ts runs the final refresh.
+    let next = 0;
+    const run = (): void => {
+      stepTimer = undefined;
+      if (!alive) return;
+      const stage = stages[next];
+      const index = next;
+      next += 1;
+      if (stage) ctx.add(() => buildStage(stage, index)); // records the tweens and triggers in the context
+      if (next < stages.length) stepTimer = window.setTimeout(run, 0);
+    };
+    if (stages.length > 0) stepTimer = window.setTimeout(run, 0);
+  }
+
   return () => {
     if (!alive) return;
     alive = false;
+    if (stepTimer !== undefined) window.clearTimeout(stepTimer);
     ctx.revert();
     cleanups.forEach((fn) => fn());
     ghosts.forEach((ghost) => ghost.remove());

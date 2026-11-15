@@ -109,6 +109,22 @@ html[data-motion='on'] .kinetic__char {
   text-align: center;
 }
 
+/* Scramble: `data-glyph` paints a random glyph in place of the letter. The
+   real letter keeps its box (no layout change); `::after` is out of flow. */
+html[data-motion='on'] .kinetic__char[data-glyph] {
+  position: relative;
+  visibility: hidden;
+}
+
+html[data-motion='on'] .kinetic__char[data-glyph]::after {
+  content: attr(data-glyph);
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  visibility: visible;
+}
+
 /* Glow sweep: each letter lights after the one before it (`--i` = letter index). */
 html[data-motion='on'] .kinetic--sweep .kinetic__char {
   animation: fx-glow-sweep var(--fx-sweep-duration) var(--ease-in-out) calc(var(--i, 0) * var(--fx-sweep-step)) 1;

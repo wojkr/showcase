@@ -28,7 +28,11 @@
  *     -(index * 10) - 5 other triggers of that stage (kinetic.ts uses the same
  *     numbers), then the pilot, then the progress bar.
  *
- * `dispose()` reverts every tween, ScrollTrigger, pin spacer, inline style,
+ * Start-up is phased: task 1 = progress bar + hero; then one stage per task,
+ * then the pilot, then one debounced refresh. With a hash or scrollY > 0 (and
+ * after a breakpoint change) all is built in one task.
+ *
+ * `dispose()` cancels the steps that are left, reverts every tween, ScrollTrigger, pin spacer, inline style,
  * class, listener, and node, and keeps the section at the top of the viewport
  * in place.
  */
@@ -117,6 +121,9 @@ const PILOT = {
 /** Scroll progress bar: catch-up time of the scrub. */
 const PROGRESS_SCRUB = 0.3;
 
+/** Wait before the one shared `ScrollTrigger.refresh()` (end of start-up, fonts, load). */
+const REFRESH_DEBOUNCE_MS = 200;
+
 /* CRT "power on" clip shapes. The open shape is larger than the box, so the
    glow and the planet are not cut at the end. */
 const CLIP_DOT = 'inset(49.6% 50% 49.6% 50%)';
@@ -164,6 +171,10 @@ function restoreAnchor(anchor: Anchor | null): void {
 
 export function init(): Dispose {
   gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.config({ ignoreMobileResize: true });
+
+  // Hash load or restored scroll: build all in one task, so the landing is right.
+  const eagerStart = window.location.hash.length > 1 || window.scrollY > 0;
 
   const hero = q<HTMLElement>(document, '[data-section="hero"]');
   const pilot = q<HTMLElement>(document, '[data-section="pilot"]');
@@ -172,7 +183,18 @@ export function init(): Dispose {
   const headerHeight = q<HTMLElement>(document, '.site-header')?.offsetHeight ?? 64;
 
   let alive = true;
+  let firstBuild = true;
+  let refreshTimer: number | undefined;
   const cleanups: Array<() => void> = [];
+
+  /** One refresh for all callers (end of the phased start-up, fonts, load). */
+  const requestRefresh = (): void => {
+    if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
+    refreshTimer = window.setTimeout(() => {
+      refreshTimer = undefined;
+      if (alive) ScrollTrigger.refresh();
+    }, REFRESH_DEBOUNCE_MS);
+  };
   /** Classes that this module may add: [element, class]. Removed in dispose. */
   const classed: Array<[Element, string]> = [];
 
@@ -256,6 +278,11 @@ export function init(): Dispose {
     const modes = (context.conditions ?? {}) as unknown as Modes;
     const viewport = window.innerHeight;
     const off: Array<() => void> = [];
+    // A build after a breakpoint change is not phased (the visitor is anywhere on the page).
+    const eager = eagerStart || !firstBuild;
+    firstBuild = false;
+    let cancelled = false;
+    let stepTimer: number | undefined;
 
     /** Plays `tl` when `section` passes the line; reverses it on the way back. */
     const reveal = (section: HTMLElement, tl: gsap.core.Timeline, line: number, priority: number, onBack?: () => void): void => {
@@ -277,11 +304,9 @@ export function init(): Dispose {
       off.push(() => section.removeEventListener('focusin', onFocus));
     };
 
-    // Read the layout first (one pass), then write.
-    const stageTops = stages.map((stage) => stage.getBoundingClientRect().top);
-    const pilotTop = pilot ? pilot.getBoundingClientRect().top : Number.POSITIVE_INFINITY;
-
-    stages.forEach((stage, index) => {
+    /** One stage = one start-up step. It reads the layout one time, then writes. */
+    const buildStage = (stage: HTMLElement, index: number): void => {
+      const stageTop = stage.getBoundingClientRect().top;
       const inner = q<HTMLElement>(stage, '.stage__inner');
       const body = q<HTMLElement>(stage, '.stage__body');
       const media = q<HTMLElement>(stage, '.stage__media');
@@ -360,7 +385,7 @@ export function init(): Dispose {
 
       classed.push([media, 'fx-pulse']);
       // Already at or above the line (hash load, restored scroll): end state now.
-      if ((stageTops[index] ?? Number.POSITIVE_INFINITY) < viewport * REVEAL.line) tl.progress(1);
+      if (stageTop < viewport * REVEAL.line) tl.progress(1);
       reveal(stage, tl, REVEAL.line, priority - 5, () => media.classList.remove('fx-pulse'));
 
       // E5: pin + scrubbed timeline.
@@ -419,10 +444,12 @@ export function init(): Dispose {
           refreshPriority: priority,
         });
       }
-    });
+    };
 
     /* --- Pilot --- */
-    if (pilot) {
+    const buildPilot = (): void => {
+      if (!pilot) return;
+      const pilotTop = pilot.getBoundingClientRect().top;
       const panel = q<HTMLElement>(pilot, '.pilot__inner');
       const photo = q<HTMLElement>(pilot, '.pilot__photo');
       const items = Array.from(pilot.querySelectorAll<HTMLElement>('.pilot__title, .pilot__text, .pilot__links'));
@@ -478,31 +505,57 @@ export function init(): Dispose {
         });
         classed.push([photo, 'fx-live']);
       }
+    };
+
+    const steps: Array<() => void> = [...stages.map((stage, index) => () => buildStage(stage, index)), buildPilot];
+
+    if (eager) {
+      steps.forEach((step) => step());
+    } else {
+      // Phased start-up: one step per task, top to bottom, so no task is long.
+      let next = 0;
+      const run = (): void => {
+        stepTimer = undefined;
+        if (cancelled || !alive) return;
+        const step = steps[next];
+        next += 1;
+        if (step) {
+          // A pin spacer above the viewport would move the content: keep it in place.
+          const keep = readAnchor(sections, headerHeight);
+          context.add(step); // records the tweens and triggers in this context
+          restoreAnchor(keep);
+        }
+        if (next < steps.length) stepTimer = window.setTimeout(run, 0);
+        else requestRefresh();
+      };
+      stepTimer = window.setTimeout(run, 0);
     }
 
     return () => {
+      cancelled = true;
+      if (stepTimer !== undefined) window.clearTimeout(stepTimer);
       off.forEach((fn) => fn());
     };
   });
 
-  /* --- First layout pass: sort by priority, measure, keep the section in place --- */
-  ScrollTrigger.refresh();
-  restoreAnchor(anchor);
-  ScrollTrigger.update();
+  /* --- Eager start: sort by priority, measure, keep the section in place --- */
+  if (eagerStart) {
+    ScrollTrigger.refresh();
+    restoreAnchor(anchor);
+    ScrollTrigger.update();
+  }
 
-  /* --- Fonts and images change the layout: measure again --- */
-  const refresh = (): void => {
-    if (alive) ScrollTrigger.refresh();
-  };
-  if ('fonts' in document) void document.fonts.ready.then(refresh);
+  /* --- Fonts and images change the layout: measure again (one debounced refresh) --- */
+  if ('fonts' in document && document.fonts.status !== 'loaded') void document.fonts.ready.then(requestRefresh);
   if (document.readyState !== 'complete') {
-    window.addEventListener('load', refresh, { once: true });
-    cleanups.push(() => window.removeEventListener('load', refresh));
+    window.addEventListener('load', requestRefresh, { once: true });
+    cleanups.push(() => window.removeEventListener('load', requestRefresh));
   }
 
   return () => {
     if (!alive) return;
     alive = false;
+    if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
     const before = readAnchor(sections, headerHeight);
 
     mm.revert();

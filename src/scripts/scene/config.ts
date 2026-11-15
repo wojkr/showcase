@@ -12,6 +12,7 @@ export const CLEAR_COLOR = '#0d0916';
 export const DPR_HIGH = 1.5;
 export const DPR_LOW = 1.0;
 export const RESIZE_DEBOUNCE_MS = 150;
+export const COMPILE_POLL_MS = 12; // start-up: interval of the shader-compile check
 export const NARROW_BREAKPOINT_PX = 1024; // below: one-column layout
 
 /* ---- Camera ---- */
