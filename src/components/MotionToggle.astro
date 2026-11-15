@@ -2,8 +2,8 @@
 /**
  * MotionToggle — the button that turns all animations on or off.
  * Usage: <MotionToggle /> (the Header renders it). No props.
- * - Pressed = animations on. The accessible name is constant ("Animations");
- *   the state is `aria-pressed`. The visible text is "Animations: on / off".
+ * - Pressed = animations on. The accessible name is the visible text;
+ *   the state is also in `aria-pressed`. The visible text is "Animations: on / off".
  * - No JS: the button stays `hidden` (it cannot work).
  * - The inline script after the button runs before the first paint: it shows
  *   the button and sets `aria-pressed`. CSS selects the visible text from
@@ -12,7 +12,7 @@
  */
 ---
 
-<button type="button" class="motion-toggle" data-motion-toggle aria-pressed="false" aria-label="Animations" hidden>
+<button type="button" class="motion-toggle" data-motion-toggle aria-pressed="false" hidden>
   <span class="motion-toggle__dot" aria-hidden="true"></span>
   <span class="motion-toggle__label">
     <span class="motion-toggle__text motion-toggle__text--on">Animations: on</span>

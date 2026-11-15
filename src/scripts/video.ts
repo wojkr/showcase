@@ -179,11 +179,16 @@ export function init(): Dispose {
       video.hidden = false; // overlays the poster in the same box
       sync();
     });
-    listen(item, video, 'error', () => fail(item));
+    // Before `load()` the sources have no `src`, and the browser sends `error`
+    // to them at parse time. Only an error after `load()` is a real failure.
+    const onError = (): void => {
+      if (item.loaded) fail(item);
+    };
+    listen(item, video, 'error', onError);
     // When no source can play, the browser sends `error` to the last <source>.
     const sources = video.querySelectorAll('source');
     const lastSource = sources.item(sources.length - 1);
-    if (lastSource) listen(item, lastSource, 'error', () => fail(item));
+    if (lastSource) listen(item, lastSource, 'error', onError);
 
     items.push(item);
     byFrame.set(frame, item);
