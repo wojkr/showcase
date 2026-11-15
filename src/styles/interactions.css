@@ -1,0 +1,231 @@
+/* ==========================================================================
+   interactions.css — cursor, magnetic / tilt, orbit rail, video, embed styles
+   (owner: T7). Scripts: src/scripts/{cursor,magnetic,orbit-nav,video,embed}.ts.
+
+   HOW TO USE
+   - Static state first. Each transition is gated by `html[data-motion='on']`.
+     No reduced-motion media query. Only `opacity`, `scale`, `translate`,
+     `transform` change over time. Nothing here changes the layout.
+   - Specificity: Astro component styles are (0,2,0) per compound selector.
+     Selectors here start with `html` and name a parent class where they must
+     win over a component rule.
+   - Parts:
+       .cursor, .cursor__ring       made by cursor.ts (motion on, fine pointer)
+       .stage__glare                made by magnetic.ts inside .stage__frame
+       .orbit-nav [aria-current]    set by orbit-nav.ts
+       .stage__video-toggle, .stage__video-icon      video.ts
+       .stage__embed, .stage__embed-frame, .stage__embed-close   embed.ts
+   - `--cursor-accent`: set inline by cursor.ts (the stage accent); the
+     fallback is the brand accent.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Custom cursor (an addition: the native cursor stays visible)
+   -------------------------------------------------------------------------- */
+
+/* Shared: fixed at 0,0; cursor.ts moves them with `transform`. */
+html .cursor,
+html .cursor__ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-cursor);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Dot: 8px, centered on the pointer. */
+html .cursor {
+  width: var(--space-2);
+  height: var(--space-2);
+  margin: calc(var(--space-2) / -2) 0 0 calc(var(--space-2) / -2);
+  background-color: var(--color-text);
+}
+
+/* Ring: 40px, follows with damping. */
+html .cursor__ring {
+  width: calc(var(--space-6) + var(--space-2));
+  height: calc(var(--space-6) + var(--space-2));
+  margin: calc((var(--space-6) + var(--space-2)) / -2) 0 0 calc((var(--space-6) + var(--space-2)) / -2);
+  border: 2px solid var(--cursor-accent, var(--color-accent));
+}
+
+html .cursor.is-visible,
+html .cursor__ring.is-visible {
+  opacity: 1;
+}
+
+/* Over a link or a control: the ring grows and fills with an accent tint. */
+html .cursor__ring[data-state='link'] {
+  background-color: color-mix(in srgb, var(--cursor-accent, var(--color-accent)) 18%, transparent);
+  scale: 1.5;
+}
+
+html .cursor[data-state='link'] {
+  background-color: var(--cursor-accent, var(--color-accent));
+  scale: 0.75;
+}
+
+/* Over the media: a large soft spotlight, no outline. */
+html .cursor__ring[data-state='media'] {
+  border-color: transparent;
+  background: radial-gradient(circle, color-mix(in srgb, var(--cursor-accent, var(--color-accent)) 30%, transparent), transparent 70%);
+  scale: 4;
+}
+
+html[data-motion='on'] .cursor,
+html[data-motion='on'] .cursor__ring {
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    scale var(--duration-base) var(--ease-out);
+}
+
+@media print {
+  html .cursor,
+  html .cursor__ring {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. Tilt glare (magnetic.ts sets `translate` and `opacity` inline)
+   -------------------------------------------------------------------------- */
+
+/* Twice the frame size, so the highlight can reach each corner. The frame
+   clips it (`overflow: hidden`). */
+html .stage__glare {
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(circle closest-side, color-mix(in srgb, var(--color-text) 20%, transparent), transparent 60%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   3. Orbit rail: the active project
+   -------------------------------------------------------------------------- */
+
+/* Active dot: larger (not color only). The component adds the accent outline
+   ring and the glow for `aria-current`. */
+html .orbit-nav__link[aria-current='true'] .orbit-nav__dot {
+  scale: 1.4;
+}
+
+/* Wide screens have free room left of the rail: the active label stays visible. */
+@media (min-width: 104em) {
+  html .orbit-nav__link[aria-current='true'] .orbit-nav__label {
+    clip-path: none;
+    opacity: 1;
+  }
+}
+
+html[data-motion='on'] .orbit-nav .orbit-nav__link .orbit-nav__dot {
+  transition:
+    box-shadow var(--duration-base) var(--ease-out),
+    scale var(--duration-base) var(--ease-spring);
+}
+
+/* --------------------------------------------------------------------------
+   4. Video toggle (position: ProjectStage.astro — bottom right of the frame)
+   -------------------------------------------------------------------------- */
+
+/* Round 44px button. Solid dark disc + light border: the icon has 17:1 on the
+   disc, and the disc edge is visible on dark and on light video content. */
+html .stage__frame .stage__video-toggle {
+  display: grid;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 0;
+  border: 2px solid var(--color-text);
+  border-radius: 50%;
+  background-color: var(--color-space);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md);
+}
+
+html .stage__frame .stage__video-toggle:hover {
+  border-color: var(--stage-accent);
+  color: var(--stage-accent);
+}
+
+/* Two-tone focus ring: the dark halo keeps the ring visible on any video. */
+html .stage__frame .stage__video-toggle:focus-visible {
+  outline-offset: 2px;
+  box-shadow: 0 0 0 calc(var(--focus-width) + 4px) var(--color-space);
+}
+
+/* Icon. Not pressed (paused): a "play" triangle. Pressed (plays): two bars. */
+html .stage__video-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  background-color: currentColor;
+  clip-path: polygon(22% 4%, 96% 50%, 22% 96%);
+}
+
+html .stage__video-toggle[aria-pressed='true'] .stage__video-icon {
+  clip-path: polygon(12% 6%, 40% 6%, 40% 94%, 12% 94%, 12% 6%, 60% 6%, 88% 6%, 88% 94%, 60% 94%, 60% 6%);
+}
+
+/* The embed covers the frame: the covered button must not take focus. */
+html [data-embed-active] .stage__video-toggle {
+  visibility: hidden;
+}
+
+html[data-motion='on'] .stage__frame .stage__video-toggle {
+  transition: scale var(--duration-fast) var(--ease-out);
+}
+
+html[data-motion='on'] .stage__frame .stage__video-toggle:hover {
+  scale: 1.08;
+}
+
+/* --------------------------------------------------------------------------
+   5. Embed ("Play here"): fills the 16:10 frame, above the poster and video
+   -------------------------------------------------------------------------- */
+
+html .stage__embed {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-raised);
+  background-color: var(--color-space);
+}
+
+html .stage__embed-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background-color: var(--color-space);
+}
+
+/* Small "Close" button in the top right corner of the embed. */
+html .stage__embed-close {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: var(--z-raised);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  padding: var(--space-1) var(--space-4);
+  border: 2px solid var(--color-text);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-space);
+  color: var(--color-text);
+  font-size: var(--step--1);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-snug);
+  box-shadow: var(--shadow-md);
+}
+
+html .stage__embed-close:hover {
+  border-color: var(--stage-accent);
+  color: var(--stage-accent);
+}
+
+html .stage__embed-close:focus-visible {
+  outline-offset: 2px;
+  box-shadow: 0 0 0 calc(var(--focus-width) + 4px) var(--color-space);
+}

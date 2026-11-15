@@ -1,0 +1,7 @@
+/* global.css — single entry point. Import this file once, in BaseLayout.astro.
+   Order: tokens, base (static state), then the gated effect layers. */
+@import './tokens.css';
+@import './base.css';
+@import './effects.css';
+@import './interactions.css';
+@import './game.css';

@@ -1,0 +1,51 @@
+---
+/**
+ * 404 — "page not found". GitHub Pages serves `404.html` for unknown paths.
+ * `noindex`; one link back to the start page (`import.meta.env.BASE_URL`).
+ */
+import { getEntry } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SceneLayer from '../components/SceneLayer.astro';
+
+const site = (await getEntry('site', 'site'))!.data;
+---
+
+<BaseLayout title={`Page not found — ${site.name}`} noindex>
+  <SceneLayer slot="scene" />
+  <section id="top" class="lost">
+    <div class="lost__panel">
+      <p class="eyebrow">Error 404</p>
+      <h1 class="lost__title">Lost in space</h1>
+      <p>This page is not on the map. Go back to the projects.</p>
+      <a class="btn btn--primary" href={import.meta.env.BASE_URL}>Back to the showcase</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .lost {
+    display: grid;
+    place-items: center;
+    min-height: calc(100vh - var(--header-height));
+    min-height: calc(100svh - var(--header-height));
+    padding-block: var(--space-section);
+  }
+
+  .lost__panel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+    width: min(100% - 2 * var(--gutter), 40rem);
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-glass);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .lost__title {
+    font-size: var(--step-6);
+    text-shadow: var(--glow-text);
+  }
+</style>

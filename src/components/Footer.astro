@@ -1,0 +1,81 @@
+---
+/**
+ * Footer — copyright (build year + `site.name`) and links to the portfolio,
+ * GitHub, and LinkedIn from `site.links`.
+ * Usage: <Footer /> (BaseLayout renders it). No props.
+ * The background is opaque: the footer text does not depend on the scene.
+ */
+import { getEntry } from 'astro:content';
+
+const site = (await getEntry('site', 'site'))!.data;
+const year = new Date().getFullYear();
+
+const links = [
+  { href: site.links.portfolio, label: 'Portfolio' },
+  { href: site.links.github, label: 'GitHub' },
+  { href: site.links.linkedin, label: 'LinkedIn' },
+];
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <p class="site-footer__copy">&copy; {year} {site.name}</p>
+    <ul class="site-footer__links" role="list">
+      {
+        links.map((link) => (
+          <li>
+            <a class="site-footer__link" href={link.href}>
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    padding-block: var(--space-5);
+    background-color: var(--color-space);
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  /* Phones: stacked and centered. */
+  .site-footer__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .site-footer__copy {
+    color: var(--color-text-muted);
+    font-size: var(--step--1);
+  }
+
+  .site-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+
+  .site-footer__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    padding-inline: var(--space-3);
+    font-size: var(--step--1);
+    font-weight: var(--weight-semibold);
+  }
+
+  /* md and up: one row. */
+  @media (min-width: 48em) {
+    .site-footer__inner {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+  }
+</style>

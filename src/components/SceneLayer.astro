@@ -1,0 +1,88 @@
+---
+/**
+ * SceneLayer — the fixed background layer behind the whole page.
+ * Usage: <SceneLayer slot="scene" /> inside <BaseLayout>. No props.
+ * - `.scene-fallback`: static CSS space (gradient, three nebula glows, stars).
+ *   Visitors with motion off, no JS, or no WebGL see only this.
+ * - `<canvas id="scene">`: empty until `scripts/scene` starts. The scene then
+ *   sets `data-scene="ready"` on <html>, and the fallback fades out.
+ */
+---
+
+<div class="scene-layer" aria-hidden="true">
+  <div class="scene-fallback"></div>
+  <canvas id="scene"></canvas>
+</div>
+
+<style>
+  .scene-layer {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-scene);
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* Deep gradient + nebula glows. The glows are low in alpha and far apart,
+     so text above them keeps its contrast (muted text >= 6:1 on one glow). */
+  .scene-fallback {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(42rem 30rem at 8% 22%, color-mix(in srgb, var(--color-mesh-1) 70%, transparent), transparent 70%),
+      radial-gradient(46rem 34rem at 96% 62%, color-mix(in srgb, var(--color-mesh-2) 75%, transparent), transparent 70%),
+      radial-gradient(70rem 30rem at 45% 112%, color-mix(in srgb, var(--color-mesh-3) 85%, transparent), transparent 72%),
+      linear-gradient(to bottom, var(--color-space), var(--color-bg) 140%);
+  }
+
+  /* Stars: two tiled layers of soft dots with different tile sizes. */
+  .scene-fallback::before,
+  .scene-fallback::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Many small, dim stars. */
+  .scene-fallback::before {
+    opacity: 0.7;
+    background-image:
+      radial-gradient(1px 1px at 12% 18%, var(--color-text), transparent),
+      radial-gradient(1px 1px at 31% 72%, var(--color-text), transparent),
+      radial-gradient(1px 1px at 47% 36%, var(--color-text-muted), transparent),
+      radial-gradient(1px 1px at 58% 88%, var(--color-text), transparent),
+      radial-gradient(1px 1px at 69% 12%, var(--color-text-muted), transparent),
+      radial-gradient(1px 1px at 78% 54%, var(--color-text), transparent),
+      radial-gradient(1px 1px at 88% 81%, var(--color-text-muted), transparent),
+      radial-gradient(1px 1px at 5% 60%, var(--color-text), transparent),
+      radial-gradient(1px 1px at 94% 30%, var(--color-text), transparent);
+    background-size: 17rem 17rem;
+  }
+
+  /* Few larger stars, some tinted. */
+  .scene-fallback::after {
+    background-image:
+      radial-gradient(1.5px 1.5px at 22% 28%, var(--color-text), transparent),
+      radial-gradient(2px 2px at 64% 66%, var(--color-link), transparent),
+      radial-gradient(1.5px 1.5px at 84% 16%, var(--color-text), transparent),
+      radial-gradient(2px 2px at 40% 90%, var(--color-accent), transparent),
+      radial-gradient(1.5px 1.5px at 8% 76%, var(--color-text), transparent);
+    background-size: 29rem 31rem;
+  }
+
+  #scene {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* The WebGL scene paints: hide the fallback (no layout change). */
+  :global(html[data-scene='ready']) .scene-fallback {
+    opacity: 0;
+  }
+
+  :global(html[data-motion='on']) .scene-fallback {
+    transition: opacity var(--duration-xslow) var(--ease-out);
+  }
+</style>

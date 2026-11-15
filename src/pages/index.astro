@@ -1,0 +1,25 @@
+---
+/**
+ * index — the showcase page: hero (sun), one stage per project, the pilot.
+ * All text comes from `src/content/*.json`. To add a project, edit
+ * `projects.json` only; the page, the rail, and the hero list follow.
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SceneLayer from '../components/SceneLayer.astro';
+import OrbitNav from '../components/OrbitNav.astro';
+import Hero from '../components/Hero.astro';
+import ProjectStage from '../components/ProjectStage.astro';
+import Pilot from '../components/Pilot.astro';
+
+const projects = (await getCollection('projects')).map((entry) => entry.data).sort((a, b) => a.order - b.order);
+const wakeUrls = projects.flatMap((project) => (project.wakeUrl ? [project.wakeUrl] : []));
+---
+
+<BaseLayout wakeUrls={wakeUrls}>
+  <SceneLayer slot="scene" />
+  <OrbitNav slot="rail" />
+  <Hero />
+  {projects.map((project, index) => <ProjectStage project={project} index={index} total={projects.length} />)}
+  <Pilot />
+</BaseLayout>

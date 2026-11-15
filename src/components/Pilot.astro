@@ -1,0 +1,146 @@
+---
+/**
+ * Pilot — last section: the author ("the pilot").
+ * Usage: <Pilot /> after the last stage. No props; data from `site.json`.
+ * - Photo in a round porthole frame with a glow ring.
+ * - Buttons: portfolio (primary, same tab), GitHub and LinkedIn (new tab).
+ * - `.pilot__egg` opens the hidden game. It is `hidden`; `scripts/game.ts`
+ *   shows it when the game is ready.
+ */
+import { getEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+
+const site = (await getEntry('site', 'site'))!.data;
+const { pilot, links } = site;
+---
+
+<section id="pilot" class="pilot" data-section="pilot">
+  <div class="pilot__inner">
+    <div class="pilot__photo">
+      <Image
+        class="pilot__img"
+        src={pilot.image}
+        alt={pilot.imageAlt}
+        widths={[360, 720]}
+        sizes="(min-width: 48em) 22.5rem, 17.5rem"
+        width={pilot.image.width}
+        height={pilot.image.height}
+        format="webp"
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+
+    <div class="pilot__body">
+      <h2 class="pilot__title">{pilot.heading}</h2>
+      <p class="pilot__text">{pilot.text}</p>
+      <div class="pilot__links">
+        <a class="btn btn--primary" data-magnetic href={links.portfolio}>Back to the portfolio</a>
+        <a class="btn" data-magnetic href={links.github} target="_blank" rel="noopener">
+          GitHub<span class="visually-hidden"> (opens in a new tab)</span>
+        </a>
+        <a class="btn" data-magnetic href={links.linkedin} target="_blank" rel="noopener">
+          LinkedIn<span class="visually-hidden"> (opens in a new tab)</span>
+        </a>
+      </div>
+      <button type="button" class="pilot__egg" data-game-open hidden>Play Block Breaker</button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .pilot {
+    display: grid;
+    align-items: center;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding-block: var(--space-section);
+  }
+
+  /* Glass panel: the text never depends on the scene. Phones: one column. */
+  .pilot__inner {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-6);
+    width: min(100% - 2 * var(--gutter), 60rem);
+    margin-inline: auto;
+    padding: var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-glass);
+    box-shadow: var(--shadow-lg);
+    -webkit-backdrop-filter: blur(var(--space-3));
+    backdrop-filter: blur(var(--space-3));
+  }
+
+  /* Porthole: round frame, dark rim, accent ring, glow. */
+  .pilot__photo {
+    flex: none;
+    width: min(17.5rem, 100%);
+    aspect-ratio: 1;
+    overflow: hidden;
+    border: var(--space-2) solid var(--color-surface-1);
+    border-radius: 50%;
+    background-color: var(--color-bg);
+    box-shadow:
+      0 0 0 2px var(--color-accent),
+      var(--glow-accent);
+  }
+
+  .pilot__photo :global(.pilot__img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Portrait source: keep the top of the head inside the circle. */
+    object-position: 50% 0;
+  }
+
+  .pilot__body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .pilot__title {
+    text-shadow: var(--glow-text);
+  }
+
+  .pilot__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  /* Quiet text button (base look; `game.css` may restyle it). */
+  .pilot__egg {
+    min-height: var(--touch-target);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-link);
+    font-size: var(--step--1);
+    font-weight: var(--weight-semibold);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .pilot__egg:hover {
+    color: var(--color-text);
+  }
+
+  /* md and up: photo left, text right. */
+  @media (min-width: 48em) {
+    .pilot__inner {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: var(--space-7);
+      padding: var(--space-7);
+    }
+
+    .pilot__photo {
+      width: 22.5rem;
+      max-width: 34vw;
+    }
+  }
+</style>
