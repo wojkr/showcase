@@ -43,6 +43,7 @@ All content is in data files. Do not put content in the layout files. The build 
 | `legacyId`             | Number 1–5. It keeps the old anchors `#1`…`#5` alive. Each number must be unique.                     |
 | `order`                | Position on the page.                                                                                 |
 | `liveUrl`, `sourceUrl` | Demo link and repository link. `sourceUrl` is optional.                                               |
+| `extraLinks`           | Optional. Extra buttons after "Live demo": `[{ "label": "…", "url": "https://…" }]`. Short labels.    |
 | `wakeUrl`              | Optional. One URL or an array of URLs. The page requests each on load to wake a sleeping demo server. |
 | `embed`                | `true` shows the "Play here" button (the demo opens in an iframe on click).                           |
 | `accent`               | Color of the stage and of the planet. Contrast must be at least 4.5:1 on `#1a1426`.                   |

@@ -54,6 +54,13 @@ const videoPoster = project.video ? (await getImage({ src: project.poster, width
           Live demo<span class="visually-hidden"> of {project.title} (opens in a new tab)</span>
         </a>
         {
+          project.extraLinks?.map((link) => (
+            <a class="btn" data-magnetic href={link.url} target="_blank" rel="noopener">
+              {link.label}<span class="visually-hidden"> of {project.title} (opens in a new tab)</span>
+            </a>
+          ))
+        }
+        {
           project.sourceUrl && (
             <a class="btn" data-magnetic href={project.sourceUrl} target="_blank" rel="noopener">
               Source<span class="visually-hidden"> of {project.title} (opens in a new tab)</span>

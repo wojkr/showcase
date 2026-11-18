@@ -84,6 +84,8 @@ const projects = defineCollection({
       description: text,
       liveUrl: httpsUrl,
       sourceUrl: httpsUrl.optional(),
+      /** Optional extra buttons after "Live demo", e.g. a second copy of the demo. Keep `label` short (1–3 words). */
+      extraLinks: z.array(z.strictObject({ label: text, url: httpsUrl })).min(1).optional(),
       /**
        * Optional. URL to request on page load, to wake a sleeping demo server.
        * One URL or a non-empty array of URLs (e.g. a demo with two servers).

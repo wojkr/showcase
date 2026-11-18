@@ -74,6 +74,12 @@
     "description": "SweetApp is a full-stack website where users create, edit, rate, and review dessert listings. It has an interactive map, authentication, and user accounts. It uses EJS, the Mapbox API, Cloudinary, Helmet, Sanitize-HTML, and Joi for validation.",
     "liveUrl": "https://sweet-app-try.onrender.com/",
     "sourceUrl": "https://github.com/wojkr/sweetApp",
+    "extraLinks": [
+      {
+        "label": "Updated demo",
+        "url": "https://sweetapp-dependencies-upgrade.onrender.com/"
+      }
+    ],
     "wakeUrl": [
       "https://sweet-app-try.onrender.com/desserts",
       "https://sweetapp-dependencies-upgrade.onrender.com/"
