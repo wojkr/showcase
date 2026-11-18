@@ -84,8 +84,11 @@ const projects = defineCollection({
       description: text,
       liveUrl: httpsUrl,
       sourceUrl: httpsUrl.optional(),
-      /** Optional URL to request on page load, to wake a sleeping demo server. */
-      wakeUrl: httpsUrl.optional(),
+      /**
+       * Optional. URL to request on page load, to wake a sleeping demo server.
+       * One URL or a non-empty array of URLs (e.g. a demo with two servers).
+       */
+      wakeUrl: z.union([httpsUrl, z.array(httpsUrl).min(1)]).optional(),
       /** true = the page may show the live demo in an iframe ("Play here"). */
       embed: z.boolean().default(false),
       /** Planet and stage colour. Contrast on #1a1426 must be 4.5:1 or more. */
