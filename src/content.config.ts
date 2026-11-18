@@ -58,6 +58,17 @@ const site = defineCollection({
         image: image(),
         imageAlt: text,
       }),
+      // Small notes under the footer row: `before` + link + `after`. Empty list = no notes.
+      footerNotes: z
+        .array(
+          z.strictObject({
+            before: z.string(),
+            linkText: text,
+            href: httpsUrl,
+            after: z.string(),
+          }),
+        )
+        .default([]),
       links: z.strictObject({
         portfolio: httpsUrl,
         github: httpsUrl,

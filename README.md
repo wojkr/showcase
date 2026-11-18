@@ -32,7 +32,7 @@ All content is in data files. Do not put content in the layout files. The build 
 
 | To change                                           | Edit this file              |
 | --------------------------------------------------- | --------------------------- |
-| Site title, hero text, pilot text, profile links    | `src/content/site.json`     |
+| Site title, hero text, pilot text, footer notes, profile links | `src/content/site.json` |
 | Projects (title, text, stack, links, colors, media) | `src/content/projects.json` |
 
 ### Project fields
