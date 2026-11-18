@@ -7,10 +7,24 @@
   "heroLead": "Five projects, five planets. Scroll to fly from one to the next.",
   "pilot": {
     "heading": "The pilot",
-    "text": "I am Wojciech Krupa, a software engineer at Bee Robotics. I build .NET and WPF interfaces and control routines for robotic systems, and I hold a B.Eng. in Aeronautics and Space Technology.",
+    "text": "Software engineer who builds desktop and web applications, and writes firmware and scripts for robotics. Mechanical engineer by education, musician by passion.",
     "image": "../assets/media/pilot.webp",
     "imageAlt": "Portrait of Wojciech Krupa, smiling, in a dark blazer and a light blue shirt."
   },
+  "footerNotes": [
+    {
+      "before": "This website is based on the ",
+      "linkText": "pre-AI era projects page",
+      "href": "https://wojkr.github.io/projects/#",
+      "after": " I created a long time ago."
+    },
+    {
+      "before": "",
+      "linkText": "Pre-AI era portfolio page",
+      "href": "https://wojkr.github.io/portfolio/",
+      "after": " I created a long time ago."
+    }
+  ],
   "links": {
     "portfolio": "https://wojkr.github.io/",
     "github": "https://github.com/wojkr",
