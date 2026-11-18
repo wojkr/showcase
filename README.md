@@ -18,37 +18,38 @@ Node `>=22.23.4` is necessary. The deploy workflow uses Node 24.
 
 ## Local commands
 
-| Command | Result |
-| --- | --- |
-| `npm install` | Installs the dependencies. |
-| `npm run dev` | Starts the dev server with live reload. |
-| `npm run build` | Builds the site into `dist/`. |
+| Command           | Result                                                                |
+| ----------------- | --------------------------------------------------------------------- |
+| `npm install`     | Installs the dependencies.                                            |
+| `npm run dev`     | Starts the dev server with live reload.                               |
+| `npm run build`   | Builds the site into `dist/`.                                         |
 | `npm run preview` | Serves the built `dist/` folder at `http://localhost:4321/showcase/`. |
-| `npm run check` | Runs `astro check` (types and Astro diagnostics). |
+| `npm run check`   | Runs `astro check` (types and Astro diagnostics).                     |
 
 ## Update content
 
 All content is in data files. Do not put content in the layout files. The build fails if the data is invalid.
 
-| To change | Edit this file |
-| --- | --- |
-| Site title, hero text, pilot text, profile links | `src/content/site.json` |
+| To change                                           | Edit this file              |
+| --------------------------------------------------- | --------------------------- |
+| Site title, hero text, pilot text, profile links    | `src/content/site.json`     |
 | Projects (title, text, stack, links, colors, media) | `src/content/projects.json` |
 
 ### Project fields
 
-| Field | Meaning |
-| --- | --- |
-| `id` | Slug. It is the section anchor (`#ride-rite`). |
-| `legacyId` | Number 1–5. It keeps the old anchors `#1`…`#5` alive. Each number must be unique. |
-| `order` | Position on the page. |
-| `liveUrl`, `sourceUrl` | Demo link and repository link. `sourceUrl` is optional. |
-| `wakeUrl` | Optional. The page requests it on load to wake a sleeping demo server. |
-| `embed` | `true` shows the "Play here" button (the demo opens in an iframe on click). |
-| `accent` | Color of the stage and of the planet. Contrast must be at least 4.5:1 on `#1a1426`. |
-| `poster`, `posterAlt` | Screenshot (1600×1000 WebP in `src/assets/media/`) and its text alternative. |
-| `video` | Optional. `media/<name>` → the files `public/media/<name>.webm` and `.mp4` (1280×800, muted, 6–10 s). |
-| `planet` | Look of the 3D planet: `radius`, `seed`, `rings`, `hue`. |
+| Field                  | Meaning                                                                                               |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| `id`                   | Slug. It is the section anchor (`#ride-rite`).                                                        |
+| `legacyId`             | Number 1–5. It keeps the old anchors `#1`…`#5` alive. Each number must be unique.                     |
+| `order`                | Position on the page.                                                                                 |
+| `liveUrl`, `sourceUrl` | Demo link and repository link. `sourceUrl` is optional.                                               |
+| `extraLinks`           | Optional. Extra buttons after "Live demo": `[{ "label": "…", "url": "https://…" }]`. Short labels.    |
+| `wakeUrl`              | Optional. One URL or an array of URLs. The page requests each on load to wake a sleeping demo server. |
+| `embed`                | `true` shows the "Play here" button (the demo opens in an iframe on click).                           |
+| `accent`               | Color of the stage and of the planet. Contrast must be at least 4.5:1 on `#1a1426`.                   |
+| `poster`, `posterAlt`  | Screenshot (1600×1000 WebP in `src/assets/media/`) and its text alternative.                          |
+| `video`                | Optional. `media/<name>` → the files `public/media/<name>.webm` and `.mp4` (1280×800, muted, 6–10 s). |
+| `planet`               | Look of the 3D planet: `radius`, `seed`, `rings`, `hue`.                                              |
 
 ### Add a project
 
