@@ -17,11 +17,14 @@
   padding: var(--space-5);
   overflow: auto;
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-lg);
+  /* Cut corners like the panels (shapes.css). */
+  --cut-tr: var(--cut);
+  --cut-bl: var(--cut);
+  --line-tr: var(--color-border-strong);
+  --line-bl: var(--color-border-strong);
   background-color: var(--color-surface-1);
   color: var(--color-text);
   font-family: var(--font-body);
-  box-shadow: var(--shadow-lg);
   cursor: auto; /* the native cursor: a custom cursor cannot paint above the top layer */
 }
 

@@ -12,7 +12,7 @@
  */
 ---
 
-<button type="button" class="motion-toggle" data-motion-toggle aria-pressed="false" hidden>
+<button type="button" class="motion-toggle shape-slant" data-motion-toggle aria-pressed="false" hidden>
   <span class="motion-toggle__dot" aria-hidden="true"></span>
   <span class="motion-toggle__label">
     <span class="motion-toggle__text motion-toggle__text--on">Animations: on</span>
@@ -38,10 +38,9 @@
     gap: var(--space-2);
     min-width: var(--touch-target);
     min-height: var(--touch-target);
-    padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-pill);
-    background-color: var(--color-surface-1);
+    padding: var(--space-2) calc(var(--space-3) + var(--slant-pad));
+    --shape-bg: var(--color-surface-1); /* slanted shape (shapes.css) */
+    --shape-line: var(--color-border-strong);
     color: var(--color-text);
     font-size: var(--step--1);
     font-weight: var(--weight-semibold);
@@ -50,8 +49,8 @@
   }
 
   .motion-toggle:hover {
-    border-color: var(--color-accent);
-    background-color: var(--color-surface-2);
+    --shape-line: var(--color-accent);
+    --shape-bg: var(--color-surface-2);
   }
 
   /* State light: hollow = off, filled and glowing = on. */
@@ -60,7 +59,7 @@
     width: var(--space-2);
     height: var(--space-2);
     border: 1px solid var(--color-text-muted);
-    border-radius: 50%;
+    transform: skewX(var(--slant)); /* a small parallelogram, like the controls */
   }
 
   :global(html[data-motion='on']) .motion-toggle__dot {

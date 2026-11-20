@@ -13,7 +13,7 @@ const site = (await getEntry('site', 'site'))!.data;
 <BaseLayout title={`Page not found — ${site.name}`} noindex>
   <SceneLayer slot="scene" />
   <section id="top" class="lost">
-    <div class="lost__panel">
+    <div class="lost__panel shape-cut">
       <p class="eyebrow">Error 404</p>
       <h1 class="lost__title">Lost in space</h1>
       <p>This page is not on the map. Go back to the projects.</p>
@@ -39,9 +39,7 @@ const site = (await getEntry('site', 'site'))!.data;
     width: min(100% - 2 * var(--gutter), 40rem);
     padding: var(--space-6);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    background-color: var(--color-glass);
-    box-shadow: var(--shadow-lg);
+    background-color: var(--color-glass); /* cut corners: shapes.css */
   }
 
   .lost__title {

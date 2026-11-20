@@ -20,7 +20,7 @@ const projects = (await getCollection('projects')).map((entry) => entry.data).so
     projects.map((project) => (
       <a class="orbit-nav__link stage-scope" href={`#${project.id}`} data-orbit-link style={`--stage-accent: ${project.accent}`}>
         <span class="orbit-nav__dot" aria-hidden="true" />
-        <span class="orbit-nav__label">{project.title}</span>
+        <span class="orbit-nav__label shape-slant">{project.title}</span>
       </a>
     ))
   }
@@ -103,10 +103,10 @@ const projects = (await getCollection('projects')).map((entry) => entry.data).so
     right: 100%;
     top: 50%;
     margin-inline-end: var(--space-1);
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--stage-accent);
-    border-radius: var(--radius-pill);
-    background-color: var(--color-bg);
+    padding: var(--space-1) calc(var(--space-3) + var(--slant-pad) / 2);
+    --shape-bg: var(--color-bg); /* slanted label (shapes.css) */
+    --shape-line: var(--stage-accent);
+    --shape-lean: var(--slant-tag);
     color: var(--color-text);
     font-size: var(--step--1);
     font-weight: var(--weight-semibold);
