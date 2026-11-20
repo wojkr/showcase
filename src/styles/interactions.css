@@ -139,22 +139,22 @@ html .stage__frame .stage__video-toggle {
   width: var(--touch-target);
   height: var(--touch-target);
   padding: 0;
-  border: 2px solid var(--color-text);
-  border-radius: 50%;
-  background-color: var(--color-space);
+  /* Slanted shape (shapes.css): solid dark fill + light 2px edge. */
+  --shape-bg: var(--color-space);
+  --shape-line: var(--color-text);
+  --shape-line-w: 2px;
+  --shape-glow: var(--shadow-md);
   color: var(--color-text);
-  box-shadow: var(--shadow-md);
 }
 
 html .stage__frame .stage__video-toggle:hover {
-  border-color: var(--stage-accent);
+  --shape-line: var(--stage-accent);
   color: var(--stage-accent);
 }
 
 /* Two-tone focus ring: the dark halo keeps the ring visible on any video. */
 html .stage__frame .stage__video-toggle:focus-visible {
-  outline-offset: 2px;
-  box-shadow: 0 0 0 calc(var(--focus-width) + 4px) var(--color-space);
+  --shape-glow: 0 0 0 calc(var(--focus-width) + 4px) var(--color-space);
 }
 
 /* Icon. Not pressed (paused): a "play" triangle. Pressed (plays): two bars. */
@@ -209,19 +209,20 @@ html .stage__embed-close {
   z-index: var(--z-raised);
   min-width: var(--touch-target);
   min-height: var(--touch-target);
-  padding: var(--space-1) var(--space-4);
-  border: 2px solid var(--color-text);
-  border-radius: var(--radius-pill);
-  background-color: var(--color-space);
+  padding: var(--space-1) calc(var(--space-4) + var(--slant-pad));
+  /* Slanted shape (shapes.css). */
+  --shape-bg: var(--color-space);
+  --shape-line: var(--color-text);
+  --shape-line-w: 2px;
+  --shape-glow: var(--shadow-md);
   color: var(--color-text);
   font-size: var(--step--1);
   font-weight: var(--weight-bold);
   line-height: var(--leading-snug);
-  box-shadow: var(--shadow-md);
 }
 
 html .stage__embed-close:hover {
-  border-color: var(--stage-accent);
+  --shape-line: var(--stage-accent);
   color: var(--stage-accent);
 }
 

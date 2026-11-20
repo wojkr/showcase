@@ -41,7 +41,7 @@ const videoPoster = project.video ? (await getImage({ src: project.poster, width
 >
   <span id={String(project.legacyId)} class="legacy-anchor"></span>
   <div class="stage__inner">
-    <div class="stage__body">
+    <div class="stage__body shape-cut">
       <p class="stage__index">{pad(index + 1)} / {pad(total)}</p>
       <h2 class="stage__title" data-kinetic>{project.title}</h2>
       <p class="stage__type">{project.type}</p>
@@ -89,8 +89,8 @@ const videoPoster = project.video ? (await getImage({ src: project.poster, width
         class:list={['stage__planet', { 'stage__planet--rings': project.planet.rings }]}
         aria-hidden="true"
         style={`--planet-scale: ${project.planet.radius}`}></span>
-      <div class="stage__bar" aria-hidden="true"><span></span><span></span><span></span></div>
-      <div class="stage__frame">
+      <div class="stage__bar shape-cut" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="stage__frame shape-cut">
         <Image
           class="stage__poster"
           src={project.poster}
@@ -158,9 +158,8 @@ const videoPoster = project.video ? (await getImage({ src: project.poster, width
     padding: var(--space-5);
     border: 1px solid var(--color-border);
     border-block-start: 2px solid var(--stage-accent);
-    border-radius: var(--radius-lg);
+    --line-tr: var(--stage-accent); /* cut corners (shapes.css); the top cut meets the accent edge */
     background-color: var(--color-glass);
-    box-shadow: var(--shadow-lg);
     -webkit-backdrop-filter: blur(var(--space-3));
     backdrop-filter: blur(var(--space-3));
   }
@@ -196,12 +195,12 @@ const videoPoster = project.video ? (await getImage({ src: project.poster, width
     gap: var(--space-2);
   }
 
-  /* Pill tag. */
+  /* Tag: a slanted label (shapes.css). */
   .stage__stack > li {
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-pill);
-    background-color: var(--color-surface-2);
+    --shape-bg: var(--color-surface-2);
+    --shape-line: var(--color-border);
+
+    padding: var(--space-1) calc(var(--space-3) + var(--slant-pad) / 2);
     color: var(--color-text);
     font-family: var(--font-mono);
     font-size: var(--step--1);
@@ -238,15 +237,17 @@ const videoPoster = project.video ? (await getImage({ src: project.poster, width
     padding-inline: var(--space-4);
     border: 1px solid var(--color-border-strong);
     border-block-end: 0;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    --cut-bl: 0px; /* only the top-right corner is cut (shapes.css); 0px, not 0: calc() needs a unit */
+    --line-tr: var(--color-border-strong);
+    --line-bl: transparent;
     background-color: var(--color-surface-1);
   }
 
   .stage__bar > span {
     width: var(--space-3);
     height: var(--space-3);
-    border-radius: 50%;
     background-color: var(--color-border-strong);
+    transform: skewX(var(--slant)); /* small parallelograms, not circles */
   }
 
   .stage__bar > span:first-child {
@@ -260,7 +261,9 @@ const videoPoster = project.video ? (await getImage({ src: project.poster, width
     overflow: hidden;
     border: 1px solid var(--color-border-strong);
     border-block-start-color: var(--color-border);
-    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    --cut-tr: 0px; /* only the bottom-left corner is cut (shapes.css); 0px, not 0: calc() needs a unit */
+    --line-tr: transparent;
+    --line-bl: var(--color-border-strong);
     background-color: var(--color-bg);
   }
 

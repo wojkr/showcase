@@ -207,7 +207,7 @@ html[data-motion='on'] .stage__stack > li::after {
   position: absolute;
   inset: -1px;
   border: 1px solid var(--stage-accent);
-  border-radius: inherit;
+  transform: skewX(var(--slant-tag)); /* follows the slanted tag (shapes.css) */
   box-shadow:
     0 0 0.75rem -0.125rem var(--stage-accent),
     inset 0 0 0.5rem var(--stage-accent-soft);

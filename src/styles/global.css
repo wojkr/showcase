@@ -2,6 +2,7 @@
    Order: tokens, base (static state), then the gated effect layers. */
 @import './tokens.css';
 @import './base.css';
+@import './shapes.css';
 @import './effects.css';
 @import './interactions.css';
 @import './game.css';

@@ -37,7 +37,7 @@ const first = projects[0];
         {
           projects.map((project) => (
             <li>
-              <a class="hero__jump stage-scope" href={`#${project.id}`} style={`--stage-accent: ${project.accent}`}>
+              <a class="hero__jump stage-scope shape-slant" href={`#${project.id}`} style={`--stage-accent: ${project.accent}`}>
                 <span class="hero__jump-dot" aria-hidden="true" />
                 {project.title}
               </a>
@@ -145,16 +145,16 @@ const first = projects[0];
     gap: var(--space-2);
   }
 
-  /* Pill link with an opaque fill: readable above any background. */
+  /* Slanted link (shapes.css) with an opaque fill: readable above any background. */
   .hero__jump {
+    --shape-bg: var(--color-bg);
+    --shape-line: var(--color-border-strong);
+
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
     min-height: var(--touch-target);
-    padding: var(--space-2) var(--space-4);
-    border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-pill);
-    background-color: var(--color-bg);
+    padding: var(--space-2) calc(var(--space-4) + var(--slant-pad));
     color: var(--color-text);
     font-size: var(--step--1);
     font-weight: var(--weight-semibold);
@@ -163,8 +163,8 @@ const first = projects[0];
   }
 
   .hero__jump:hover {
-    border-color: var(--stage-accent);
-    box-shadow: var(--glow-stage);
+    --shape-line: var(--stage-accent);
+    --shape-glow: var(--glow-stage);
   }
 
   .hero__jump-dot {
@@ -173,12 +173,6 @@ const first = projects[0];
     height: var(--space-3);
     border-radius: 50%;
     background: radial-gradient(circle at 32% 30%, var(--stage-accent-hover), var(--stage-accent) 60%);
-  }
-
-  :global(html[data-motion='on']) .hero__jump {
-    transition:
-      border-color var(--duration-fast) var(--ease-out),
-      box-shadow var(--duration-base) var(--ease-out);
   }
 
   /* --- Scroll hint: label + short vertical line --- */
